@@ -1,0 +1,61 @@
+@import url(style.css);
+
+.card
+{   
+    position:relative;
+
+    box-shadow:
+    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
+    -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
+    0 5.5px 5px rgba(65, 52, 52, 0.015),
+    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
+    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
+    0 10px 10px rgba(0, 0, 0, 0.015);
+
+   background: white;
+   border-radius: var(--contentBorderRadii);
+   
+   width: 50%;
+   height: auto;
+   
+   margin-top: 10px;
+   margin-right:auto;
+   margin-left:auto;
+   padding:5px;
+}
+
+.gameBanner
+{
+    opacity: 1;
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: .5s ease;
+    backface-visibility: hidden;
+}
+
+.gameBannerMiddle {
+  transition: .5s ease;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.card:hover .gameBanner {
+  opacity: 0.3;
+}
+
+.card:hover .gameBannerMiddle {
+  opacity: 1;
+}
+
+.gameBannerText
+{
+    color:black;
+    font-size: 32px;
+    font-weight: bold;
+}
