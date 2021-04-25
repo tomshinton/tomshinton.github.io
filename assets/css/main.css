@@ -1,0 +1,87 @@
+:root {
+  --textColour: #3a3a3ab9;
+  --mainBackground: #EEEEEE;
+  --titleBackground: #ffffff;
+  
+  --contentWidth: 75%;
+
+  --codeblockBackground: #e7e7e7;
+  --contentBorderRadii: 5px;
+}
+
+*{
+  margin:0;
+  padding:0;
+  list-style: none;
+  text-decoration:  none;
+
+  font-family: Raleway;
+  color:var(--textColour);
+}
+
+body{
+  background-color: var(--mainBackground);
+}
+
+.main
+{
+  box-sizing: border-box;
+
+  height:auto;
+  padding-bottom: 50px;
+
+  margin-top: 100px;
+  margin-right:auto;
+  margin-left:auto;
+  width: var(--contentWidth);
+}
+
+.siteInfo
+{
+  margin-right:auto;
+  margin-left:auto;
+  width: var(--contentWidth);  
+
+  height: auto;
+}
+
+.contentBox
+{
+    box-shadow:
+    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
+    -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
+    0 5.5px 5px rgba(0, 0, 0, 0.015),
+    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
+    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
+    0 10px 10px rgba(0, 0, 0, 0.015);
+
+   background: white;
+   border-radius: var(--contentBorderRadii);
+   padding: 20px;
+   
+   white-space:pre-line;
+   margin-top: 10px;
+}
+
+.postTitle
+{
+  padding-bottom: 20px;
+}
+
+p, div
+{
+  font-size: 25px;
+}
+
+pre
+{
+  margin-top: 10px;
+  padding-left: 0;
+  background-color: var(--codeblockBackground);
+  border-radius: var(--contentBorderRadii);
+}
+
+code
+{
+  font-weight: bold;
+}

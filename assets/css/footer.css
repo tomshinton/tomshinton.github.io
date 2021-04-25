@@ -1,0 +1,65 @@
+@import "main.css";
+
+.footerContainer
+{
+  display: inline-block;
+  text-align: center;
+
+  box-sizing: border-box;
+  bottom:0;
+  width: 100%;
+  padding:20px;
+  background-color: var(--titleBackground);
+
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: rgba(0, 0, 0, 0.233);
+
+  box-shadow:
+  0 2.8px 1.2px rgba(0, 0, 0, 0.015),
+  -0 -3.7px -2.3px rgba(0, 0, 0, 0.015),
+  0 5.5px 5px rgba(0, 0, 0, 0.015),
+  0 10.3px 9.9px rgba(0, 0, 0, 0.015),
+  0 20.8px 15.4px rgba(0, 0, 0, 0.015),
+  0 10px 10px rgba(0, 0, 0, 0.015);
+}
+
+.footerText
+{
+  font-size: 25px;
+  color: var(--textColour);
+
+  width: var(--contentWidth);
+  margin-right:auto;
+  margin-left:auto;
+}
+
+.socialIcon
+{
+    display: inline;
+
+    width: 50px;
+    height: 50px;
+
+    padding-right: 10px;
+    padding-left: 10px;
+
+    transition: all .3s ease-in; 
+
+    filter: none;
+    -webkit-filter: grayscale(20%);
+    -moz-filter:    grayscale(20%);
+    -ms-filter:     grayscale(20%);
+    -o-filter:      grayscale(20%);
+}
+
+.socialIcon:hover
+{
+    transform:scale(1.2, 1.2);
+
+    filter: none;
+    -webkit-filter: grayscale(0%);
+    -moz-filter:    grayscale(0%);
+    -ms-filter:     grayscale(0%);
+    -o-filter:      grayscale(0%);
+}
