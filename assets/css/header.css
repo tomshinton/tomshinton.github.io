@@ -9,10 +9,6 @@
   height:auto; 
   z-index:100;
 
-  border-bottom-style:inset;
-  border-bottom-width: 1px;
-  border-bottom-color: rgba(0, 0, 0, 0.233);
-
   padding-top: 10px;
   padding-bottom: 10px;
 
@@ -33,9 +29,10 @@
   margin-right:auto;
   margin-left:auto;
 
-  font-size: 40px;
-  font-weight: bold;
+  font-size: 25px;
+  font-weight: 700;
 
+  color:var(--textColour);
   vertical-align: middle;
 }
 
@@ -47,7 +44,7 @@
   margin-left:auto;
   padding-left: 20px;
 
-  font-size: 25px;
-  color:var(--textColour);
+  font-size: 20px;
+  color:black;
   vertical-align: middle;
 }

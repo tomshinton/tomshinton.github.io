@@ -1,7 +1,7 @@
 :root {
-  --textColour: #3a3a3ab9;
-  --mainBackground: #EEEEEE;
-  --titleBackground: #ffffff;
+  --textColour: #D1D3DD;
+  --mainBackground: #23252F;
+  --titleBackground:#282A36;
   
   --contentWidth: 75%;
 
@@ -34,6 +34,8 @@ body{
   margin-right:auto;
   margin-left:auto;
   width: var(--contentWidth);
+  background-color: var(--mainBackground);
+
 }
 
 .siteInfo
