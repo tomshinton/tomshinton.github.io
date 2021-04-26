@@ -1,5 +1,5 @@
-let publishedGamesUrl = "assets/data/xml/publishedGames.xml";
-let blogListUrl= "assets/content/blog/TestBlog.html";
+let publishedGamesUrl = "/assets/data/xml/publishedGames.xml";
+let blogListUrl= "/assets/content/blog/TestBlog.html";
 
 function FindBlogPosts() 
 {

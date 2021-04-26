@@ -5,7 +5,7 @@
     <developer>Rare</developer>
     <role>Senior Engineer</role>
     <platforms>Xbox, PC</platforms>
-    <bannerUrl>assets/images/banners/SoTBanner.jpg</bannerUrl>
+    <bannerUrl>/assets/images/banners/SoTBanner.jpg</bannerUrl>
   </game>
 
   <game>
@@ -13,7 +13,7 @@
     <developer>Flix Interactive</developer>
     <role>Senior Engineer</role>
     <platforms>PC</platforms>
-    <bannerUrl>assets/images/banners/ESBanner.jpg</bannerUrl>
+    <bannerUrl>/assets/images/banners/ESBanner.jpg</bannerUrl>
   </game>
 
   <game>
@@ -21,6 +21,6 @@
     <developer>Sumo Digital</developer>
     <role>Engineering Support</role>
     <platforms>Xbox, PC</platforms>
-    <bannerUrl>assets/images/banners/CD3Banner.jpg</bannerUrl>
+    <bannerUrl>/assets/images/banners/CD3Banner.jpg</bannerUrl>
   </game>
 </root> 
