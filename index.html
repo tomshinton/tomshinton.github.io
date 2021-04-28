@@ -18,8 +18,40 @@
 <body>
     <div id="header"></div>
     <div class=main id="main">
-        <!-- Populated by main.js -->
+
+        <div class=contentBox>
+            <div class=content>
+Hi, my name's Tom, and im a games developer.
+
+I've been happily working in the UK Games and Arch Visualisation industry since 2015 as both a Software Engineer and 3D Artist.
+
+I've extensive experience shipping optimised, networked games on <strong>Xbox</strong>, <strong>PC</strong> in both the AAA and Indie spaces - check these out on my <a href="/assets/content/PublishedGames.html">Published Games</a> page
+            </div>
+        </div>
     </div>
+
+    <div id=map>
+        <script>
+            function initMap() 
+            {
+                let location = { lat: 52.398550, lng: -2.001550 };
+                let map = new google.maps.Map(document.getElementById("map"),
+                {
+                    zoom: 8,
+                    center: location
+                });
+
+                let marker = new google.maps.Marker({
+                    position: location,
+                    map: map
+                });
+            }
+        </script>
+        <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDsa7B1VnxzQTyXKYR1y6zcja_dYcKMJVQ&callback=initMap">
+    </script>
+    </div>
+
     <div id="footer"></div>
 </body>
 </html>
