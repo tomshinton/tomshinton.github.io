@@ -2,7 +2,8 @@
   --textColour: #D1D3DD;
   --mainBackground: #23252F;
   --titleBackground:#282A36;
-  
+  --contentBackground: #343A40;
+
   --contentWidth: 75%;
 
   --codeblockBackground: #1E1E1E;
@@ -17,6 +18,7 @@
 
   font-family: Raleway;
   color:var(--textColour);
+  box-sizing: border-box;
 }
 
 body{
@@ -32,6 +34,7 @@ body{
   margin-top: 100px;
   margin-right:auto;
   margin-left:auto;
+  
   width: var(--contentWidth);
   background-color: var(--mainBackground);
 }
@@ -55,7 +58,7 @@ body{
     0 20.8px 15.4px rgba(0, 0, 0, 0.015),
     0 10px 10px rgba(0, 0, 0, 0.015);
 
-   background: #343A40;
+   background: var(--contentBackground);
    border-radius: var(--contentBorderRadii);
    padding: 20px;
    margin-top: 20px;
@@ -100,7 +103,6 @@ p, div
    background: #343A40;
    border-radius: var(--contentBorderRadii);
    padding: 5px;
-   margin-bottom: 20px;
    box-sizing: border-box;
    width: 50%;
    height: 600px;
