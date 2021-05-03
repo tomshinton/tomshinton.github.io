@@ -44,12 +44,25 @@ function BuildHomePage()
                 let bannerMiddle = document.createElement("div");
                 bannerMiddle.className = "gameBannerMiddle";
 
-                let bannerText = document.createElement("div");
-                bannerText.className = "gameBannerText";
+                let bannerTextName = document.createElement("div");
+                bannerTextName.className = "gameBannerText";
+                bannerTextName.textContent = games[i].getElementsByTagName('name')[0].innerHTML;
+                bannerMiddle.appendChild(bannerTextName);
 
-                bannerText.textContent = games[i].getElementsByTagName('name')[0].innerHTML;
+                let bannerTextdeveloper = document.createElement("div");
+                bannerTextdeveloper.className = "gameBannerTextMinor";
+                bannerTextdeveloper.textContent = games[i].getElementsByTagName('developer')[0].innerHTML;
+                bannerMiddle.appendChild(bannerTextdeveloper);
 
-                bannerMiddle.appendChild(bannerText);
+                let bannerTextRole = document.createElement("div");
+                bannerTextRole.className = "gameBannerTextMinor";
+                bannerTextRole.textContent = games[i].getElementsByTagName('role')[0].innerHTML;
+                bannerMiddle.appendChild(bannerTextRole);
+                
+                let bannerTextPlatform = document.createElement("div");
+                bannerTextPlatform.className = "gameBannerTextMinor";
+                bannerTextPlatform.textContent = games[i].getElementsByTagName('platforms')[0].innerHTML;
+                bannerMiddle.appendChild(bannerTextPlatform);
 
                 newCard.appendChild(bannerMiddle);
                 mainBody.appendChild(newCard);

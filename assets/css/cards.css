@@ -12,7 +12,7 @@
     0 20.8px 15.4px rgba(0, 0, 0, 0.015),
     0 10px 10px rgba(0, 0, 0, 0.015);
 
-   background: white;
+   background: var(--contentBackground);
    border-radius: var(--contentBorderRadii);
    
    width: 50%;
@@ -21,7 +21,6 @@
    margin-top: 10px;
    margin-right:auto;
    margin-left:auto;
-   padding:5px;
 }
 
 .gameBanner
@@ -32,6 +31,7 @@
     height: auto;
     transition: .5s ease;
     backface-visibility: hidden;
+    border-radius: var(--contentBorderRadii);
 }
 
 .gameBannerMiddle {
@@ -46,7 +46,7 @@
 }
 
 .card:hover .gameBanner {
-  opacity: 0.3;
+  opacity: 0.1;
 }
 
 .card:hover .gameBannerMiddle {
@@ -55,9 +55,15 @@
 
 .gameBannerText
 {
-    color:black;
+    color:var(--textColour);
     font-size: 32px;
     font-weight: bold;
+}
+
+.gameBannerTextMinor
+{
+    color:var(--textColour);
+    font-size: 25px;
 }
 
 .blogBox
@@ -92,7 +98,7 @@
   border-radius: var(--contentBorderRadii);
   box-sizing: border-box;
 
-  transition: all .3s ease-in-out; 
+  transition: box-shadow, width .3s ease-in-out; 
 }
 
 .blogCard:hover
