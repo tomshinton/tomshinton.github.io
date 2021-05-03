@@ -112,26 +112,7 @@ p, div
    margin-left:auto;
 }
 
-pre
+.pre[title]::before
 {
-  background-color: var(--codeblockBackground);
-  border-radius: var(--contentBorderRadii);
-  padding-left: 20px;
-}
-
-code
-{
-  font-family: 'Ubuntu Mono', monospace;
-  font-size: inherit;
-}
-
-p > code,
-li > code,
-dd > code,
-td > code {
-  background: #ffeff0;
-  word-wrap: break-word;
-  box-decoration-break: clone;
-  padding: .1rem .3rem .2rem;
-  border-radius: .2rem;
+  content: "Test";
 }

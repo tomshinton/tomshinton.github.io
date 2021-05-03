@@ -59,3 +59,105 @@
     font-size: 32px;
     font-weight: bold;
 }
+
+.blogBox
+{
+  display: flex;
+  flex-wrap: wrap;
+  flex-flow: row wrap;
+  justify-content: space-around;
+
+  box-shadow:
+  0 2.8px 1.2px rgba(0, 0, 0, 0.015),
+  -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
+  0 5.5px 5px rgba(0, 0, 0, 0.015),
+  0 10.3px 9.9px rgba(0, 0, 0, 0.015),
+  0 20.8px 15.4px rgba(0, 0, 0, 0.015),
+    0 10px 10px rgba(0, 0, 0, 0.015);
+
+  transition: all .2s ease-in-out; 
+
+  background: var(--contentBackground);
+  border-radius: var(--contentBorderRadii);
+  padding: 20px;
+  margin-top: 20px;
+  box-sizing: border-box;
+}
+
+.blogCard
+{
+  background-color: rgba(255, 255, 255, 0.103);
+  width: 30%;
+  margin:10px;
+  border-radius: var(--contentBorderRadii);
+  box-sizing: border-box;
+
+  transition: all .3s ease-in-out; 
+}
+
+.blogCard:hover
+{
+  box-shadow:
+  0 5.8px 5.2px rgba(0, 0, 0, 0.025),
+  0 6.7px 2.3px rgba(0, 0, 0, 0.025),
+  0 5.5px 5px rgba(0, 0, 0, 0.025),
+  0 10.3px 9.9px rgba(0, 0, 0, 0.025),
+  0 20.8px 15.4px rgba(0, 0, 0, 0.025),
+    0 10px 10px rgba(0, 0, 0, 0.025);
+}
+
+.blogThumbnail
+{
+  border-top-left-radius: var(--contentBorderRadii);
+  border-top-right-radius: var(--contentBorderRadii);
+
+  max-width: 100%;
+  max-height: 100%;
+
+  transition: all .2s ease-in-out; 
+
+  filter: none;
+  -webkit-filter: grayscale(50%);
+  -moz-filter:    grayscale(50%);
+  -ms-filter:     grayscale(50%);
+  -o-filter:      grayscale(50%);
+}
+
+.blogThumbnail:hover
+{
+  filter: none;
+  -webkit-filter: grayscale(0%);
+  -moz-filter:    grayscale(0%);
+  -ms-filter:     grayscale(0%);
+  -o-filter:      grayscale(0%);
+}
+
+.blogTitle
+{
+  font-weight: 700;
+  padding: 10px;
+}
+
+.blogCategories
+{
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.blogCategory
+{
+  transition: background-color .2s ease-in-out; 
+
+  background-color: rgba(128, 128, 128, 0.247);
+  display: inline-block;
+  padding: 5px;
+  margin-right: 5px;
+  margin: 3px;
+}
+
+.blogCategory:hover
+{
+  background-color: rgba(128, 128, 128, 0.47);
+}
