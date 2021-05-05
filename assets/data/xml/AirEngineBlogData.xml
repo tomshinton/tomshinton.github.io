@@ -7,4 +7,13 @@
     <category>Utilities</category>
     <category>Maths</category>
   </post>
+  
+   <post>
+    <title>FVector Rounding</title>
+    <postURL>/assets/content/blog/RoundingFVectors.html</postURL>
+    <postThumbnail></postThumbnail>
+    <category>World Grid</category>
+    <category>Utilities</category>
+    <category>Maths</category>
+  </post>
 </root>
