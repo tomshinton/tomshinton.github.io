@@ -1,16 +1,4 @@
 let publishedGamesUrl = "/assets/data/xml/publishedGames.xml";
-let blogListUrl= "/assets/content/blog/TestBlog.html";
-
-function FindBlogPosts() 
-{
-    fetch(blogListUrl).then(response => response.text()).then(data =>
-    {
-        let Parser = new DOMParser();
-        let html = Parser.parseFromString(data, "text/html");
-
-        console.log(html.getElementsByTagName('meta')[0].content);
-    });
-}
 
 function BuildHomePage() 
 {
@@ -72,4 +60,3 @@ function BuildHomePage()
 }
 
 BuildHomePage();
-FindBlogPosts();

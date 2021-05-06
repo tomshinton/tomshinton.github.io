@@ -8,6 +8,18 @@ Template for BlogCard
 </div>
 </div> */
 
+let blogPosts = [];
+
+let inputDiv = document.createElement("input");
+inputDiv.addEventListener('change', filterPosts);
+inputDiv.className = "blogBoxSearch";
+inputDiv.placeholder = "Search";
+inputDiv.spellcheck = false;
+
+let noPostsFoundDiv = document.createElement("div");
+noPostsFoundDiv.textContent = "There's nothing here, chief";
+noPostsFoundDiv.style.display = "none";
+
 function BuildBlog()
 {
     if(typeof sourceBlogXML == 'undefined')
@@ -35,6 +47,14 @@ function BuildBlog()
                 let newBlogBox = document.createElement("div");
                 newBlogBox.className = "blogBox";
                 newBlogBox.id = "blogBox";
+                
+                newBlogBox.appendChild(inputDiv);
+
+                let newblogCardContainer = document.createElement("div");
+                newblogCardContainer.className = "blogCardContainer"
+                newblogCardContainer.appendChild(noPostsFoundDiv);
+
+                newBlogBox.appendChild(newblogCardContainer);
                 
                 //forloop over posts and add to blogbox
                 for (let i = 0; i < posts.length; ++i) 
@@ -80,20 +100,18 @@ function BuildBlog()
                         return a.textContent.localeCompare(b.textContent);
                     });
 
-                    console.log(catArr);
                     if(catArr.length > 0)
                     {
                         let categoriesBox = document.createElement("div");
                         categoriesBox.className = "blogCategories";
-                        
-                        console.log("Adding " + catArr.length + " categories for post " + currPost.getElementsByTagName('title')[0].innerHTML);
+                        categoriesBox.id = "blogCategories";
+
                         for(let i = 0; i < catArr.length; ++i)
                         {
                             let category = catArr[i].innerHTML;
-                            console.log(category);
-
                             let newCategory = document.createElement("div");
                             newCategory.className = "blogCategory";
+                            newCategory.id = "blogCategory";
 
                             newCategory.textContent = catArr[i].innerHTML;
                             categoriesBox.appendChild(newCategory);
@@ -103,13 +121,113 @@ function BuildBlog()
                     }
 
                     //push new card to container
-                    newBlogBox.appendChild(blogAnchor);
+                    newblogCardContainer.appendChild(blogAnchor);
+                    blogPosts.push(blogAnchor);
                 }
 
                 mainBody.appendChild(newBlogBox);
             }
         });
     }
+}
+
+function filterPosts()
+{
+    let filter = inputDiv.value;
+    let matchingPosts = 0;
+
+    if(filter != "")
+    {
+        for(let i = 0; i < blogPosts.length; ++i)
+        {
+            let currPost = blogPosts[i];
+
+            if(!postMatchesFilter(currPost, inputDiv.value))
+            {
+                currPost.style.display = "none";
+            }
+            else
+            {
+                currPost.style.display = "inline";
+                matchingPosts++;
+            }
+
+            if(matchingPosts == 0)
+            {
+                noPostsFoundDiv.style.display = "inline";
+            }
+            else
+            {
+                noPostsFoundDiv.style.display = "none";
+            }
+        }
+    }
+    else
+    {
+        noPostsFoundDiv.style.display = "none";
+
+        for(let i = 0; i < blogPosts.length; ++i)
+        {
+            blogPosts[i].style.display = 'inline';
+        }
+    }
+}
+
+function postMatchesFilter(inPost, inFilter)
+{
+    let parsedFilter = inFilter.split(" ");
+
+    let nameMatch = false;
+    let categoryMatch = false;
+    
+    //match name
+    let postInner = inPost.childNodes[0];
+    let blogTitle = postInner.querySelectorAll(".blogTitle");
+    let parsedName = blogTitle[0].textContent.split(" ");
+    
+    for(let i = 0; i < parsedFilter.length; ++i)
+    {
+        let currentPhrase = parsedFilter[i].toUpperCase();
+        for(let j = 0; j < parsedName.length; j++)
+        {
+            let currentName = parsedName[j].toUpperCase();
+
+            if(currentName.indexOf(currentPhrase) > -1)
+            {
+                nameMatch = true;
+                break;
+            }
+        }
+    }
+        
+    //match categories
+    let blogCategories = postInner.querySelectorAll(".blogCategory");
+    let parsedCategories = [];
+    for(let i = 0; i < blogCategories.length; ++i)
+    {
+        let parsedCategory = blogCategories[i].innerText.split(" ");
+        for(let j = 0; j < parsedCategory.length; ++j)
+        {
+            parsedCategories.push(parsedCategory[j]);
+        }
+    }
+
+    for(let i = 0; i < parsedFilter.length; ++i)
+    {
+        let currentPhrase = parsedFilter[i].toUpperCase();
+        for(let j = 0; j < parsedCategories.length; j++)
+        {
+            let currentName = parsedCategories[j].toUpperCase();
+
+            if(currentName.indexOf(currentPhrase) > -1)
+            {
+                categoryMatch = true;
+                break;
+            }
+        }
+    }
+
+    return categoryMatch || nameMatch;
 }
 
 BuildBlog();

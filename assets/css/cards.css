@@ -68,11 +68,6 @@
 
 .blogBox
 {
-  display: flex;
-  flex-wrap: wrap;
-  flex-flow: row wrap;
-  justify-content: space-around;
-
   box-shadow:
   0 2.8px 1.2px rgba(0, 0, 0, 0.015),
   -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
@@ -88,6 +83,14 @@
   padding: 20px;
   margin-top: 20px;
   box-sizing: border-box;
+}
+
+.blogCardContainer
+{
+  display: flex;
+  flex-wrap: wrap;
+  flex-flow: row wrap;
+  justify-content: space-around;
 }
 
 .blogCard
@@ -166,4 +169,21 @@
 .blogCategory:hover
 {
   background-color: rgba(128, 128, 128, 0.47);
+}
+
+.blogBoxSearch
+{
+  width: 50%;
+  margin-right:auto;
+  margin-left:auto;
+  display: block;
+  background-color: rgba(128, 128, 128, 0.47);
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 20px;
+  outline: none;
+  border: none;
+  padding: 10px;
 }
