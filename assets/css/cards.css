@@ -90,18 +90,18 @@
   display: flex;
   flex-wrap: wrap;
   flex-flow: row wrap;
-  justify-content: space-around;
 }
 
 .blogCard
 {
   background-color: rgba(255, 255, 255, 0.103);
   width: 30%;
+  max-width: 50%;
   margin:10px;
   border-radius: var(--contentBorderRadii);
   box-sizing: border-box;
-
-  transition: box-shadow, width .3s ease-in-out; 
+  flex: 1 1 30%;
+  transition: box-shadow .3s ease-in-out; 
 }
 
 .blogCard:hover
