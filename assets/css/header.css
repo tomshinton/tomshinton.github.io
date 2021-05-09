@@ -63,6 +63,7 @@
   padding-left: 10px;
   border-radius: var(--contentBorderRadii);
   transition: background-color .3s ease-in; 
+  white-space: nowrap;
 }
 
 .navbarLink:hover
@@ -96,6 +97,11 @@
   max-height: 400px;
 }
 
+#personalProjectDropdown:hover #dropdownIcon
+{
+  transform: rotate(90deg);
+}
+
 #personalProjectContent a 
 {
   position: relative;
@@ -111,4 +117,17 @@
 #personalProjectContent a:hover 
 {
   background-color: #444444a6
+}
+
+#dropdownIcon
+{
+  box-sizing: border-box;
+  display: inline;
+  color: white;
+  transition: transform .5s ease-in;
+
+  width: 20px;
+  height: 20px;
+  line-height: 35px;
+  vertical-align:middle;
 }
