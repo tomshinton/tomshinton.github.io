@@ -124,7 +124,7 @@
   box-sizing: border-box;
   display: inline;
   color: white;
-  transition: transform .5s ease-in;
+  transition: transform .3s ease-in-out;
 
   width: 20px;
   height: 20px;
