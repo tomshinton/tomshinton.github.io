@@ -76,36 +76,39 @@
 }
 
 #personalProjectContent {
-  display: none;
   position: absolute;
-  background-color: #f9f9f9;
-
-  min-width: 160px;
-  box-shadow:
-    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-    0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-    0 5.5px 5px rgba(0, 0, 0, 0.015),
-    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
-
-  z-index: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: #444444;
+  width: auto;
+  left: 0;
+  max-height: 0;
+  -webkit-transition: max-height 1s;
+  -o-transition: max-height 1s;
+  transition: max-height 1s;
+  overflow: hidden;
 }
 
 #personalProjectDropdown:hover #personalProjectContent
 {
   display:block;
+  max-height: 400px;
 }
 
 #personalProjectContent a 
 {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
+  position: relative;
   display: block;
+  padding: 0 10px;
+  height: 50px;
+  line-height: 50px;
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 #personalProjectContent a:hover 
 {
-  background-color: #f1f1f1
+  background-color: #444444a6
 }

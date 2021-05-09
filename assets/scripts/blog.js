@@ -11,7 +11,7 @@ Template for BlogCard
 let blogPosts = [];
 
 let inputDiv = document.createElement("input");
-inputDiv.addEventListener('change', filterPosts);
+inputDiv.addEventListener('input', filterPosts);
 inputDiv.className = "blogBoxSearch";
 inputDiv.placeholder = "Search";
 inputDiv.spellcheck = false;
