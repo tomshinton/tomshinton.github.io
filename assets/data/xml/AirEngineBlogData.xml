@@ -16,4 +16,13 @@
     <category>Utilities</category>
     <category>Maths</category>
   </post>
+
+  <post>
+    <title>A Sensible ASync Loading Wrapper</title>
+    <postURL>/assets/content/blog/ASyncLoadingWrapper.html</postURL>
+    <postThumbnail></postThumbnail>
+    <category>Async Loading</category>
+    <category>Utilities</category>
+  </post>
+
 </root>

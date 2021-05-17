@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<head>
+    <title>Tom Shinton - ASync Loading Wrapper</title>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+        $(function () {
+            $("#header").load("/header.html");
+            $("#footer").load("/footer.html");
+        });
+    </script>
+</head>
+
+<body>
+    <div id="header"></div>
+    <div class=main id="main">
+        <div class=contentBox>
+<div class=content><div class=contentTitle>A Sensible ASync Loading Wrapper</div>
+Loading in Unreal typically takes place on the main thread - that's the same thread as all the import juicy stuff.  If we wait a couple milliseconds to load a massive mesh, that's a couple milliseconds of juicy important stuff <i>that’s not happening.</i>
+
+Luckily, Unreal provides us a method of pushing that load onto another thread - the <strong>FStreamableManager</strong>.  The StreamableManager is a struct that requests assets to be loaded and returns a callback when then they're in memory.  If they're already in memory, the callback is fired immediately.          
+       
+However, I find the FStreamableManager unwieldy and cumbersome to use regularly.  It has to be initialised SOMEWHERE, and all it does is provide a callback when it's done.   It doesn’t say what it's done processing, it just lets us know it's done processing <i>something.</i>.
+
+What I want is a function, where I pass in the reference to the thing I want to load, and then some kind of callback that returns me the loaded object of the correct type.  So that's what this change does - provides a globally accessible framework to just load your stuff.  No frills - its usecase is a single static function call with a lambda for the callback.  Easy peasy.
+
+<pre><code class=language-cpp>   
+    FASyncLoader::Load&lt;UStaticMesh&gt;(MeshPath, [this](UStaticMesh&amp; InLoadedMesh)
+    {
+    &#x9;UE_LOG(LogTemp, Log, TEXT(&quot;Loaded %s&quot;), *InLoadedMesh.GetName());
+    });
+</pre></code>
+<strong>Why do I want an async loader? Im getting along just fine.</strong>
+
+You probably arent.  Say you have a Player that has a texture referenced as a UProperty in it's class defaults.  Every time you load that Player, <i>YOU'RE ALSO LOADING THAT TEXTURE</i>.  If you're struggling with abhorent editor performance, strongly referenced assets is probably the cause.  There's no reasonable reason for a 4k texture to load when you open up a blueprint.
+
+This one's a bit hairy, so i've broken up it's implementation into sections.
+</div></div>
+
+<div class=contentBox>
+<div class=content><div class=contentTitle>New Module</div>
+First of all, we'll want a module to hold this framework.  As we're spinning up another Thread, lets call it the Threading module.  This module is where we keep our persistant FStreamableManager - no more initialising one in every bloody class, just use the same one all over.
+
+To a new Threading folder inside Engine/Runtime, add the following -
+
+<pre>ThreadingModule.h - NEW FILE
+<code class=language-cpp>   
+// AirEngine 2020 - Tom Shinton
+#include &quot;Runtime/Threading/Public/ThreadingInterface.h&quot;
+#include &quot;Runtime/Threading/Public/ASyncLoader.h&quot;
+
+DEFINE_LOG_CATEGORY_STATIC(ThreadingModuleLog, Log, Log)
+
+class FThreadingModule : public IThreadingInterface
+{&#x9;
+    virtual void StartupModule() override;
+    virtual void ShutdownModule() override;
+
+    //IThreadingInterface
+    THREADING_API virtual TSharedPtr&lt;FASyncLoader&gt; GetStaticLoader() override final;
+    //~IThreadingInterface
+
+private:
+
+    TSharedPtr&lt;FASyncLoader&gt; Loader;
+};
+
+IMPLEMENT_MODULE(FThreadingModule, Threading);
+</pre></code>
+<pre>ThreadingModule.cpp - NEW FILE
+    <code class=language-cpp>   
+    // AirEngine 2020 - Tom Shinton
+    #include "Runtime/Threading/Public/ThreadingModule.h"
+    
+    void FThreadingModule::StartupModule()
+    {
+        UE_LOG(ThreadingModuleLog, Log, TEXT("Spinning up Threading module"));
+    
+        Loader = MakeShareable&lt;FASyncLoader&gt;(new FASyncLoader);
+    }
+    
+    void FThreadingModule::ShutdownModule()
+    {
+        UE_LOG(ThreadingModuleLog, Log, TEXT("Shutting down Threading module"));
+    }
+    
+    TSharedPtr&lt;FASyncLoader&gt; FThreadingModule::GetStaticLoader()
+    {
+        return Loader;
+    }   
+</pre></code>
+<pre>Threading.build.cs - NEW FILE
+<code class=language-cpp>   
+// AirEngine 2020 - Tom Shinton
+using UnrealBuildTool;
+
+public class Threading: ModuleRules
+{
+    public Threading(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PrivateDependencyModuleNames.AddRange(new string[] 
+        {
+            &quot;Core&quot;,
+            &quot;CoreUObject&quot;,
+            &quot;Engine&quot;
+        });
+
+        PrivateIncludePaths.AddRange(new string[] 
+        {
+            &quot;Runtime/Threading/Private&quot;
+        });
+        
+        PublicIncludePaths.AddRange(new string[]
+        {
+            &quot;Runtime/Threading/Public&quot;
+        });
+    }
+}
+</pre></code>
+You can see this framework is fairly lightweight, and fairly standard boilerplate for a new module - it only leans on the holy trinity of base modules; Core, CoreUObject and Engine.  Now we've got a module in place, we'll need a custom interface to access it.  Any of the static accessors unreal provides will want to return this as an IModuleInterface&.  Not normally an issue, but want access to that loader, so lets make one that gives us access -
+
+<pre>ThreadingInterface.h - NEW FILE
+<code class=language-cpp>   
+// AirEngine 2020 - Tom Shinton
+#pragma once
+
+class FASyncLoader;
+
+class IThreadingInterface : public IModuleInterface
+{
+public:
+    
+    virtual TSharedPtr&lt;FASyncLoader&gt; GetStaticLoader() = 0;
+};     
+</pre></code>
+We need to signal to the engine somewhere that we've got a new module that needs building.  To get it roped into the compile, simply make the following change
+
+<pre>UnrealEd.build.cs - change
+<code class=language-cpp>   
+PrivateDependencyModuleNames.AddRange(new string[]
+{
+    /... Existing modules .../
+
+    //start @AirEngine Add custom engine modules
+    , &quot;Threading&quot;
+    //end @AirEngine
+}
+</pre></code>
+Thats it! We've now got a single FStreamableManager that we can more or less access from anywhere, assuming the module we're currently working in imports the <strong>Threading API</strong> by simply adding it to the appropriate build.cs.
+</div>
+</div>
+
+<div class=contentBox>
+<div class=content><div class=contentTitle>Load wrapper</div>
+Now we've got our module in place to do the loading, lets flesh out the actual API.
+
+Firstly, we need to define a class that's going to hold our load requests.  These are essentially an additional wrapper for the <strong>FStreamableHandle</strong> class, with additional payloads to tell the API what type we're requesting, as well as what to call when we've loaded the file.
+
+<pre> LoadRequest.h - NEW FILE
+<code class=language-cpp>   
+// AirEngine 2020 - Tom Shinton
+#pragma once
+
+#include &lt;Runtime/Engine/Classes/Engine/StreamableManager.h&gt;
+
+struct FBaseLoad
+{
+    virtual bool TryResolve() { return false; }
+};
+
+template&lt;class T&gt;
+struct FLoadRequest : public FBaseLoad
+{
+public:
+    
+    FLoadRequest()
+        : Handle()
+        , Callback()
+    {};
+    
+    FLoadRequest(const TSharedPtr&lt;FStreamableHandle&gt;&amp; InHandle, const TFunction&lt;void(T&amp;)&gt;&amp; InCallback)
+        : Handle(InHandle)
+        , Callback(InCallback)
+    {};
+
+    virtual bool TryResolve() override
+    {
+        if(Callback != nullptr)
+        {
+            if(UObject* LoadedObject = Handle-&gt;GetLoadedAsset())
+            {
+                Callback(*CastChecked&lt;T&gt;(LoadedObject));
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+private:
+    
+    TSharedPtr&lt;FStreamableHandle&gt; Handle;
+    TFunction&lt;void(T&amp;)&gt; Callback;
+};
+</pre></code>
+
+We can see here that we've actually got two classes - lets break them down, and why they're necessary.
+
+<strong>FBaseLoad</strong>
+
+This is practically empty.  It gives us the chance to sort of <i>exploit</i> the polymorphism that comes with pointers, and store an array of templated types.  For instance - 
+<ul><li>- FLoadRequest templated to UStaticMesh</li><li>- FLoadRequest templated to UTexture2D</li><li>- FLoadRequest templated to AExplodingBarrel</li></ul>
+Are all different types, and cannot be coerced into a single array.  However, if we keep an array of pointers to their <i>base</i> type, we can fudge the compiler into doing what we want.  Nice.
+
+<strong>FLoadRequest::FBaseLoad</strong>
+
+This is main class, and does a few simple things.  Firstly, it holds a reference to the streaming handle.  
+
+Secondly, it holds a <i>correctly typed callback</i>, thanks to the templating.
+
+The TryResolve is basically determining whether or not this class's desired asset load has been fulfilled.  We could call Resolve directly on the StreamHandle, but that would cause a sync load on the main thread and load the asset right then and there - precisely not what we're after.  The GetLoadedAsset call, however, will return nullptr if the asset isnt in memory.  If the streaming manager is in the process of loading it, this field will be null, and thus a reliable metric as to whether or not this request can be fulfilled.
+
+Lets take a look at the actual loader class, the final peice to this puzzle - 
+
+<pre> ASyncLoader.h - NEW FILE
+<code class=language-cpp>   
+// AirEngine 2020 - Tom Shinton
+#pragma once
+
+#include &quot;Runtime/Threading/Public/LoadRequest.h&quot;
+#include &quot;Runtime/Threading/Public/ThreadingInterface.h&quot;
+
+#include &lt;Runtime/Engine/Classes/Engine/StreamableManager.h&gt;
+
+DEFINE_LOG_CATEGORY_STATIC(ASyncLoaderLog, Log, Log)
+
+namespace AsyncLoader
+{
+    //Chuck this into a namespace - making FName isnt cheap
+    const FName ThreadingModuleName = &quot;Threading&quot;;
+}
+
+//SharedFromThis allows the garbage collector to make more informed decisions when dealing with the collection of any stored load requests
+class FASyncLoader : public TSharedFromThis&lt;FASyncLoader&gt;
+{
+public:
+    
+    FASyncLoader()
+        : Requests()
+        , Manager()
+    {
+    };
+    
+    //Statically accessible version of the loader, prevents the user having to grab all of this fluff themselves
+    template&lt;class T&gt;
+    static void Load(const FSoftObjectPath&amp; InPath, const TFunction&lt;void(T&amp;)&gt;&amp; InCallback)
+    {
+        if(!InPath.IsNull())
+        {
+            if(InCallback != nullptr)
+            {
+                //Grab a reference to the statically initialised version of this class in the Threading module
+                IThreadingInterface&amp; ThreadingInterface = FModuleManager::LoadModuleChecked&lt;IThreadingInterface&gt;(AsyncLoader::ThreadingModuleName);
+
+                if(TSharedPtr&lt;FASyncLoader&gt; Loader = ThreadingInterface.GetStaticLoader())
+                {
+                    Loader-&gt;LoadInternal&lt;T&gt;(InPath, InCallback);
+                }
+            }
+            else
+            {
+                UE_LOG(ASyncLoaderLog, Error, TEXT(&quot;Cannot request Async load - No valid callback provided&quot;));&#x9;
+            }
+        }
+        else
+        {
+            UE_LOG(ASyncLoaderLog, Error, TEXT(&quot;Cannot request ASync load - FilePath is null&quot;));
+        }
+    }
+
+    void Reset()
+    {
+        Requests.Reset();
+    }
+
+private:
+    
+    template&lt;class T&gt;
+    void LoadInternal(const FSoftObjectPath&amp; InPath, const TFunction&lt;void(T&amp;)&gt;&amp; InCallback)
+    {
+        if(FBaseLoad* NewLoadRequest = new FLoadRequest&lt;T&gt;(Manager.RequestAsyncLoad(InPath, FStreamableDelegate::CreateSP(this, &amp;FASyncLoader::OnLoaded)), InCallback))
+        {
+            Requests.Add(NewLoadRequest);&#x9;
+        }
+    }
+
+    void OnLoaded()
+    {
+        //SOMETHING has loaded - lets find out what it is
+        for(int32 Request = Requests.Num() - 1; Request &gt;= 0; --Request)
+        {
+            if(Requests[Request]-&gt;TryResolve())
+            {
+                //Loop backwards - this array may change scope mid-loop
+                Requests.RemoveAt(Request);
+            }
+        }
+    }
+    
+    //Polymorphed load requests
+    TArray&lt;FBaseLoad*&gt; Requests;
+
+    //Single instantiation of FStreamableManager
+    FStreamableManager Manager;
+};
+</pre></code>
+We can see here the supremely unhelp way in which the StreamableManager wants to signal a load - with a single callback with no data.  By binding to the OnLoad, we can loop over all the incoming requests and ask each one - "has your request been fulfilled?".
+
+If yes, we can "fulfil" it ourselves by grabbing the loaded asset and triggering its callback with an appropriate cast.
+
+<strong>That's about it! Lets break down that usecase - </strong>
+
+<pre><code class=language-cpp>   
+FASyncLoader::Load&lt;UStaticMesh&gt;(MeshPath, [this](UStaticMesh&amp; InLoadedMesh)
+{
+    &#x9;UE_LOG(LogTemp, Log, TEXT(&quot;Loaded %s&quot;), *InLoadedMesh.GetName());
+});
+</pre></code>
+We call that nice Static Load function inside the FAsyncLoader class.  That in turn grabs the module that's acting as our singleton, and queues up a request.  As soon as that request is fulfulled, we come back into the body of the lambda and log out "Some asset has been loaded".  Very simple, very easy to use and a lot of the dirty innards are snaffled away into the engine.
+
+There's a great deal of scope for expansion with this API, and would actually make a great candidate for plugin-ification.  Array support should probably be added at some point (ie Load me these 10 textures, yadda yadda).
+</div>
+</div>
+</div>
+
+<div id="footer"></div>
+</body>
+</html>

@@ -16,7 +16,6 @@
   list-style: none;
   text-decoration:  none;
 
-  font-family: Raleway;
   color:var(--textColour);
   box-sizing: border-box;
 }
@@ -27,6 +26,7 @@ html {
 
 body{
   background-color: var(--mainBackground);
+  font-family: Raleway;
 }
 
 .main
@@ -114,9 +114,4 @@ p, div
 
    margin-right:auto;
    margin-left:auto;
-}
-
-.pre[title]::before
-{
-  content: "Test";
 }
