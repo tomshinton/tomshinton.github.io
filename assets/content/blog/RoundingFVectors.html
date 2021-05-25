@@ -31,14 +31,14 @@ The compiler will give us a bit of a nudge when doing int->float conversions bec
 
 Add the following function definitions - 
             
-<pre>UnrealMathUtility.h
+<pre>UnrealMathUtility.h - CHANGE
 <code class=language-cpp>       
 //start @AirEngine FVector rounding functions
 static CORE_API int32 RoundIntToNearest(const int32 InInt, const uint32 InNearestFactor);
 static CORE_API FVector RoundVectorToNearestInt(const FVector& InVector, const uint32 InNearestFactor);
 //end @AirEngine FVector rounding functions
 </pre></code>
-<pre>UnrealMath.cpp
+<pre>UnrealMath.cpp - CHANGE
 <code class=language-cpp>
 //start @AirEngine FVector rounding functions
 int32 FMath::RoundIntToNearest(const int32 InInt, const uint32 InNearestFactor)
@@ -46,17 +46,17 @@ int32 FMath::RoundIntToNearest(const int32 InInt, const uint32 InNearestFactor)
     const int32 CurrVal = FMath::Abs(InInt);
     const int32 Diff = FMath::Abs(CurrVal % (int32)InNearestFactor);
     
-    const int32 UnsignedVal = (Diff < InNearestFactor * 0.5f) ? (CurrVal - Diff) : (CurrVal + (InNearestFactor - Diff));
+    const int32 UnsignedVal = (Diff &lt; InNearestFactor * 0.5f) ? (CurrVal - Diff) : (CurrVal + (InNearestFactor - Diff));
     return UnsignedVal * FMath::Sign(InInt);
 }
 
-FVector RoundVectorToNearestInt(const FVector& InVector, const uint32 InNearestFactor)
+FVector RoundVectorToNearestInt(const FVector&amp; InVector, const uint32 InNearestFactor)
 {
-    //Coorce into float at each step - FVector consists of floats but we're rounding to ints
+    //Coorce into float at each step - FVector consists of floats but we&apos;re rounding to ints
     return FVector(
-    static_cast<float>(RoundIntToNearest(static_cast<int>(InVector.X), InNearestFactor)),
-    static_cast<float>(RoundIntToNearest(static_cast<int>(InVector.Y), InNearestFactor)),
-    static_cast<float>(RoundIntToNearest(static_cast<int>(InVector.Z), InNearestFactor)));
+    static_cast&lt;float&gt;(RoundIntToNearest(static_cast&lt;int&gt;(InVector.X), InNearestFactor)),
+    static_cast&lt;float&gt;(RoundIntToNearest(static_cast&lt;int&gt;(InVector.Y), InNearestFactor)),
+    static_cast&lt;float&gt;(RoundIntToNearest(static_cast&lt;int&gt;(InVector.Z), InNearestFactor)));
 }
 //end @AirEngine FVector rounding functions
 </pre></code>
