@@ -32,5 +32,14 @@
     <category>Instanced Static Mesh</category>
     <category>Utilities</category>
   </post>
-
+  
+  <post>
+    <title>GetInterface for Actors</title>
+    <postURL>/assets/content/blog/GetInterface.html</postURL>
+    <postThumbnail></postThumbnail>
+    <category>Interfaces</category>
+    <category>Modules</category>
+    <category>API</category>
+    <category>Utilities</category>
+  </post>
 </root>
