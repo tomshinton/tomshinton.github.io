@@ -42,4 +42,13 @@
     <category>API</category>
     <category>Utilities</category>
   </post>
+
+  <post>
+    <title>Adding FGuid to Blackboard</title>
+    <postURL>/assets/content/blog/AddingGuidToBlackboard.html</postURL>
+    <postThumbnail></postThumbnail>
+    <category>AI</category>
+    <category>Blackboard</category>
+    <category>Behaviour Tree</category>
+  </post>
 </root>
