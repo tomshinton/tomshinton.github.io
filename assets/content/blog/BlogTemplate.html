@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,200;1,100;1,200&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap" rel="stylesheet">
+
+    <title>Tom Shinton - GetInterface</title>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+        $(function () {
+            $("#header").load("header.html");
+            $("#footer").load("footer.html");
+        });
+    </script>
+    <script src="../../scripts/prism.js"></script>
+    <link rel="stylesheet" href="../../css/prism.css">
+    <link rel="stylesheet" href="../../css/main.css">
+</head>
+
+<body>
+    <div id="header"></div>
+    <div class=main id="main">
+        <div class=contentBox>
+            <div class=content><div class=contentTitle>API Communication with GetInterface</div>
+When working with large, Module heavy codebases, the idea of a single API interface is a <i>FANTASTIC</i> one.  However, in Unreal, the idea can be pretty unwieldy, and doesn’t really marry up with the architectures Unreal lends itself to.
+
+Namely, the Component based architecture.  
+            
+For the most part, as Unreal devs, the bulk of our code will be snaffled away into a component.  If we want access to that component, we need to <i>at least</i> make it's type part of the MinimalAPI, and then expose out any of it's functions and members as part of the actual Module API.  We'll then need to linearly search for that component whenever we want it at runtime and hope that it's public functions are exported appropriately.
+            
+Alternatively, we can break our reliance on a strongly typed component and reduce our dependency to a single API call through sensible use of an Interface.
+            
+Lets say we have a function <strong>Foo</strong>.  Firstly we'd need to know what class it's in, we'd have to know it's accessor type, and we'd have to add an include to that type.
+
+Realistically, this is a <strong>pain in the arse-</strong>
+            
+<pre>EXAMPLE
+<code class=language-cpp>
+if(MyActor != nullptr)
+{
+    TArray&lt;UMyType*&gt; Components; //&lt;-- Needless stack allocation, and disregards &quot;const correctness&quot;, if that&apos;s your kind of thing
+    MyActor-&gt;GetComponents&lt;UMyType&gt;(Components); //&lt;-- Sneaky function that hides casts and loops.  
+               
+    for(UMyType* Component : Components)
+    {
+        if(Component != nullptr) //&lt;-- Necessary pointer check - ComponentPointers can go walkabouts
+        {
+            Component-&gt;Foo();
+            Component-&gt;AssessToAVariable = BlahBlah;  //&lt;-- Potentially unintended access to a non-API var
+        }
+    }
+}
+</pre></code>
+I don’t want to have to type this all the time! Just give me access to your API with less faff, please and thank you.  Because we have to include the <i>UMyType</i> in order to use it, we could hit a circular dependancy down the line.  Not nice.
+            
+This whole section can be reduced to the following, assuming we integrate the following engine change - 
+            
+<pre>EXAMPLE
+<code class=language-cpp>
+if(MyActor != nullptr)
+{
+    const TArray&lt;const IMyType*&gt; TypeInterfaces = MyActor-&gt;GetInterfaces&lt;IMyType&gt;(); //&lt;-- Const correct, yessir.
+    for(const IMyType* TypeInterface : TypeInterfaces)
+    {
+        TypeInteface-&gt;Foo(); //&lt;-- Function that&apos;s DEFINITELY part of an API.
+        //we&apos;re not sneakily accessing something that&apos;s been left public by accident
+    }
+}
+</pre></code>
+Using an abstracted Interface means we're not going to hit a circular dependancy, and we can be sure that the function that's exposed is <i>intended to be part of an API</i>.  We also have the oppotunity to put functions on the actor directly because actors can be interfaced too.
+
+<strong>Changes</strong>
+
+Pretty self explanatory on this one - we need to add both a GetInterface and GetInterfaces function to Actor.h.  Its a deep down change for sure, so the compile's close to a full engine one, but being able to grab an interface straight off of an actor is fantastic when it comes to large projects, its worth the compile time. Unfortuntaly, almost all of this change needs to be templated, we cant cant move any of it into the .cpp.
+
+<pre>Actor.h - ADDITION
+<code class=language-cpp>
+//start @AirEngine Add GetInterface() support
+public:
+
+    template&lt;typename TInterface&gt;
+    TInterface* GetInterface() const { return GetInterfaceInternal&lt;TInterface&gt;(); }
+
+    template&lt;typename TInterface&gt;
+    TInterface* GetInterface() { return const_cast&lt;TInterface*&gt;(GetInterfaceInternal&lt;TInterface&gt;()); }
+
+    template&lt;typename TInterface&gt;
+    const TArray&lt;const TInterface*&gt; GetInterfaces() const { return GetInterfacesInternal&lt;TInterface&gt;(); }
+
+    template&lt;typename TInterface&gt;
+    TArray&lt;TInterface*&gt; GetInterfaces()
+    {
+        TArray&lt;const TInterface*&gt; ImmutableInterfaces = GetInterfacesInternal&lt;TInterface&gt;();
+        TArray&lt;TInterface*&gt; MutableInterfaces;
+
+        for (const TInterface* ImmutableInterface : ImmutableInterfaces)
+        {
+            MutableInterfaces.AddUnique(const_cast&lt;TInterface*&gt;(ImmutableInterface));
+        }
+
+        return MutableInterfaces;
+    }
+
+private:
+
+    template&lt;typename TInterface&gt;
+    const TInterface* GetInterfaceInternal() const
+    {
+        //Does this actor match the query?
+        if (const TInterface* LocalInterface = Cast&lt;TInterface&gt;(this))
+        {
+            return LocalInterface;
+        }
+
+        //Do any of our components?
+        const TSet&lt;UActorComponent*&gt;&amp; Components = GetComponents();
+        for (const UActorComponent* Component : Components)
+        {
+            if (const TInterface* Interface = Cast&lt;TInterface&gt;(Component))
+            {
+                return Interface;
+            }
+        }
+
+        return nullptr;
+    }
+
+    template&lt;typename TInterface&gt;
+    const TArray&lt;const TInterface*&gt; GetInterfacesInternal() const
+    {
+        TArray&lt;const TInterface*&gt; FoundInterfaces;
+
+        //Does this actor match the query?
+        if (const TInterface* LocalInterface = Cast&lt;TInterface&gt;(this))
+        {
+            FoundInterfaces.AddUnique(LocalInterface);
+        }
+
+        //Do any of our components?
+        const TSet&lt;UActorComponent*&gt;&amp; Components = GetComponents();
+        for (const UActorComponent* Component : Components)
+        {
+            if (const TInterface* Interface = Cast&lt;TInterface&gt;(Component))
+            {
+                FoundInterfaces.AddUnique(Interface);
+            }
+        }
+
+        return FoundInterfaces;
+    }
+//end @AirEngine
+</pre></code>
+You'll see i've also added support for calling both the Singular and Array returns from both const and non-const functions, because that "conversion loses qualifiers" compile error'll really sneak up on you.
+
+You'll also notice that this change is essentially an abstraction of the above snippet that im not all too fond of - and you'd be correct! We could be smart, and TMap the resulting IInterface to it's UInterface class type to lazily build a table, but we'd still end up with a O(n) function time.  We may as well accept that this kind of "find me the thing i need" approach is going to have a cost, and its on us a developers to use these functions intellegently.  My usual go-to here is to cache the found Interface pointer as a TWeakInterfacePtr in the header of whatever class im working in;  When I next need the interface, i'll just use the cached one instead of finding it again from scratch - 
+
+<pre>EXAMPLE.h
+<code class=language-cpp>
+//The UObject inside will keep the Interface refcounted, so no need to UPROP this
+TWeakInterfacePtr&lt;IMyType&gt; CachedInterface;
+</pre></code>
+<pre>EXAMPLE.cpp
+<code class=language-cpp>
+void AMyClass::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if(MyActor != nullptr)
+    {
+        if(IMyType* MyType = MyActor-&gt;GetInterface&lt;MyType&gt;())
+        {
+            //As of 4.26, TWeakInterfacePtr can only be assigned to a ref, preventing it&apos;s inner from being null.  Lovely.
+            CachedInterface = *MyType;
+        }
+    }
+}
+
+void AMyClass::DoSomething()
+{
+    //Instead of finding the interface again, use the cached version.  
+    //Get() incurs a small conversion cost, so cache the returned interface on the stack to use in the rest of the scope, 
+    //save us Get()&apos;ing it over and over again
+    if(IMyType* MyType = CachedInterface.Get())
+    {
+        MyType-&gt;Foo();
+    }
+}
+</pre></code>
+
+With a convenient GetInterface function now integrated into the engine, we can really lean into the Module architecture Unreal provides, and help whittle down those nasty Link times.
+            </div>
+        </div>
+    </div>
+    <div id="footer"></div>
+</body>
+</html>
