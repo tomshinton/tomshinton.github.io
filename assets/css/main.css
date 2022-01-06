@@ -7,7 +7,7 @@
   --contentWidth: 75%;
 
   --codeblockBackground: #1E1E1E;
-  --contentBorderRadii: 5px;
+  --contentBorderRadii: 3px;
 }
 
 *{
@@ -54,13 +54,13 @@ body{
 
 .contentBox
 {
-    box-shadow:
+    /* box-shadow:
     0 2.8px 1.2px rgba(0, 0, 0, 0.015),
     -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
     0 5.5px 5px rgba(0, 0, 0, 0.015),
     0 10.3px 9.9px rgba(0, 0, 0, 0.015),
     0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
+    0 10px 10px rgba(0, 0, 0, 0.015); */
 
    background: var(--contentBackground);
    border-radius: var(--contentBorderRadii);
