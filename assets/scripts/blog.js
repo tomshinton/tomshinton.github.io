@@ -19,6 +19,7 @@ inputDiv.spellcheck = false;
 let noPostsFoundDiv = document.createElement("div");
 noPostsFoundDiv.textContent = "There's nothing here, chief";
 noPostsFoundDiv.style.display = "none";
+noPostsFoundDiv.style.color = "var(--textColour_Accented)";
 
 function BuildBlog()
 {

@@ -16,21 +16,44 @@ function BuildHomePage()
         {
             console.log("Building homepage");
 
+            var IsAccented = false;
             for (let i = 0; i < games.length; ++i) 
             {
                 //Create new Card
                 let newCard = document.createElement("div");
                 newCard.className = "card";
 
+                if(IsAccented)
+                {
+                    newCard.style.backgroundColor = "white";
+                }
+
                 //Create Image
                 let bannerImage = document.createElement("img");
-                bannerImage.src = games[i].getElementsByTagName('bannerUrl')[0].innerHTML;
                 bannerImage.className = "gameBanner"
+                
+                if(IsAccented)
+                {
+                    bannerImage.className = "gameBanner_Accented"
+                }
+                else
+                {
+                    bannerImage.className = "gameBanner"
+                }
+
+                bannerImage.src = games[i].getElementsByTagName('bannerUrl')[0].innerHTML;
                 newCard.appendChild(bannerImage);
 
                 //Create inner text and fading section
                 let bannerMiddle = document.createElement("div");
-                bannerMiddle.className = "gameBannerMiddle";
+                if(IsAccented)
+                {
+                    bannerMiddle.className = "gameBannerMiddle_Accented";
+                }
+                else
+                {
+                    bannerMiddle.className = "gameBannerMiddle";
+                }
 
                 let bannerTextName = document.createElement("div");
                 bannerTextName.className = "gameBannerText";
@@ -54,6 +77,8 @@ function BuildHomePage()
 
                 newCard.appendChild(bannerMiddle);
                 mainBody.appendChild(newCard);
+
+                IsAccented = !IsAccented;
             }
         }
     });

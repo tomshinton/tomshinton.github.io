@@ -1,13 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 :root {
-  --textColour: #D1D3DD;
-  --mainBackground: #23252F;
+  --textColour: rgba(208, 210, 220, 0.9);
+  --textColour_Accented: rgb(0, 0, 0, .9);
+
+  --mainBackground: #27282c;
   --titleBackground:#282A36;
-  --contentBackground: #343a4079;
-
-  --contentWidth: 75%;
-
+  --contentBackground: #343a40;
+  --contentWidth: 75vw;
   --codeblockBackground: #1E1E1E;
   --contentBorderRadii: 3px;
+
+  --contentBackgroundAccent: white;
 }
 
 *{
@@ -26,21 +30,28 @@ html {
 
 body{
   background-color: var(--mainBackground);
-  font-family: Raleway;
+  font-family: Roboto, sans-serif;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-height: 100vh;
 }
 
 .main
 {
   box-sizing: border-box;
 
-  height:auto;
+  flex:1;
 
   margin-top: 100px;
   margin-right:auto;
   margin-left:auto;
-  
-  width: var(--contentWidth);
-  background-color: var(--mainBackground);
+
+  position: relative;
+  padding-bottom: 2.5rem;
+  width: 100%;
 }
 
 .siteInfo
@@ -54,18 +65,12 @@ body{
 
 .contentBox
 {
-    /* box-shadow:
-    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-    -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-    0 5.5px 5px rgba(0, 0, 0, 0.015),
-    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015); */
-
-   background: var(--contentBackground);
-   border-radius: var(--contentBorderRadii);
-   padding: 20px;
-   margin-top: 20px;
+  border-radius: var(--contentBorderRadii);
+  padding: 20px;
+  width: var(--contentWidth);
+  
+  margin-right:auto;
+  margin-left:auto;
 }
 
 .content
@@ -96,14 +101,6 @@ p, div
 
 #map
 {
-    box-shadow:
-    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-    -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-    0 5.5px 5px rgba(0, 0, 0, 0.015),
-    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
-
    background: #343A40;
    border-radius: var(--contentBorderRadii);
    padding: 5px;

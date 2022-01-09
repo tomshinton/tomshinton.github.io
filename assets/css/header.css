@@ -1,133 +1,129 @@
 @import "/assets/css/main.css";
 
+:root {
+  --navbarHeight: 5vh;
+}
+
 .headerContainer
 { 
-  box-sizing: border-box;
-  background-color: var(--titleBackground);  
+  background-color: var(--mainBackground);
   position:fixed;
   top:0;
-  height:auto; 
+  height: var(--navbarHeight); 
   z-index:100;
 
-  padding-top: 10px;
-  padding-bottom: 10px;
-
   width: 100%;
-
-  box-shadow:
-    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-    0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-    0 5.5px 5px rgba(0, 0, 0, 0.015),
-    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
 }
 
 .navBar
 {
-  width: var(--contentWidth);
-  vertical-align:middle;
-  line-height: 35px;
+  box-sizing: content-box;
 
-  height:auto;
+  width: var(--contentWidth);
+  height: 100%;
+  
+  vertical-align:middle;
+
   margin-right:auto;
   margin-left:auto;
+}
+
+.homeTextContainer
+{ 
+  box-sizing: content-box;
+
+  float:left;
+  background-color: rgb(0, 0, 0);
+  height: 100%;
+  cursor: pointer;
+  width: fit-content;
 }
 
 .homeText
 {
   display: inline-block;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+
   box-sizing: border-box;
 
+  padding-right: 20px;
+  padding-left: 20px;
+
   color: white;
-  border: none;
-  cursor: pointer;
 
-  font-size: 40px;
+  font-size: calc(var(--navbarHeight) * 0.5);
+}
 
-  padding:5px;
-  border-radius: var(--contentBorderRadii);
+.headerPages
+{
+  float: right;
+  width: fit-content;
+  height: 100%;
 }
 
 .navbarLink
 {  
   display: inline-block;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+
   box-sizing: border-box;
 
-  background-color: #3e8e418e;
-  color: white;
-  border: none;
+  color: rgb(153, 153, 153, 0.5);
 
-  padding:5px;
   padding-right: 10px;
   padding-left: 10px;
-  border-radius: var(--contentBorderRadii);
-  transition: background-color .3s ease-in; 
-  white-space: nowrap;
+
+  transition: color .5s ease-in-out; 
+  font-size: calc(var(--navbarHeight) * 0.4);
+}
+
+.dropdownLink
+{
+  display: inline-block;
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+
+  box-sizing: border-box;
+
+  color: rgb(153, 153, 153, 0.5);
+
+  padding-right: 10px;
+  padding-left: 10px;
+
+  transition: color .5s ease-in-out; 
+  font-size: calc(var(--navbarHeight) * 0.4);
 }
 
 .navbarLink:hover
 {
-  background-color: #3e8e41;
+    color: rgb(153, 153, 153, 1);
 }
 
-#personalProjectDropdown {
-  position: relative;
-  display: inline-block;
+.dropdownLink:hover
+{
+  color: rgb(153, 153, 153, 1);
 }
 
-#personalProjectContent {
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  background-color: #444444;
-  width: auto;
-  left: 0;
-  max-height: 0;
-  -webkit-transition: max-height 1s;
-  -o-transition: max-height 1s;
-  transition: max-height 1s;
+.dropdownLink:hover > .dropDownBar
+{
+  max-height: 500px;
+}
+
+.dropDownBar
+{
   overflow: hidden;
-}
 
-#personalProjectDropdown:hover #personalProjectContent
-{
-  display:block;
-  max-height: 400px;
-}
+  position: absolute;
 
-#personalProjectDropdown:hover #dropdownIcon
-{
-  transform: rotate(90deg);
-}
+  top: calc(var(--navbarHeight) * .70);
 
-#personalProjectContent a 
-{
-  position: relative;
-  display: block;
-  padding: 0 10px;
-  height: 50px;
-  line-height: 50px;
-  color: #ffffff;
-  cursor: pointer;
-  text-decoration: none;
-}
+  max-height: 0px;
+  transition: max-height 2s ease-in-out;
 
-#personalProjectContent a:hover 
-{
-  background-color: #444444a6
-}
-
-#dropdownIcon
-{
-  box-sizing: border-box;
-  display: inline;
-  color: white;
-  transition: transform .3s ease-in-out;
-
-  width: 20px;
-  height: 20px;
-  line-height: 35px;
-  vertical-align:middle;
+  background-color: var(--mainBackground);
 }

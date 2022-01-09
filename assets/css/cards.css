@@ -1,24 +1,22 @@
 @import url(main.css);
 
+:root
+{
+  --cardBorderRadii: 5px;
+}
+
 .card
-{   
-    position:relative;
-
-    box-shadow:
-    0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-    -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-    0 5.5px 5px rgba(65, 52, 52, 0.015),
-    0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-    0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
-
-   background: var(--contentBackground);
-   border-radius: var(--contentBorderRadii);
-   
-   width: 50%;
+{    
+   width: 100%;
    height: auto;
+   display: flex;
+   align-items: center;
+   justify-content: center;
    
-   margin-top: 10px;
+   flex-direction: row;
+
+   padding-top: 20px;
+   padding-bottom: 20px;
    margin-right:auto;
    margin-left:auto;
 }
@@ -26,63 +24,67 @@
 .gameBanner
 {
     opacity: 1;
-    display: block;
-    width: 100%;
-    height: auto;
-    transition: .5s ease;
-    backface-visibility: hidden;
-    border-radius: var(--contentBorderRadii);
+    width: 960px;
+    height: 400px;
 }
 
-.gameBannerMiddle {
-  transition: .5s ease;
-  opacity: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.card:hover .gameBanner {
-  opacity: 0.1;
-}
-
-.card:hover .gameBannerMiddle {
+.gameBanner_Accented
+{
   opacity: 1;
+  order: 2;
+  max-width: 960px;
+  max-height: 400px;
+}
+
+.gameBannerMiddle
+{
+  max-width: calc(var(--contentWidth) / 2);
+  opacity: 1;
+  order: 2;
+  text-align: left;
+  padding: 100px;
+  color: var(--textColour);
+}
+
+.gameBannerMiddle_Accented
+{
+  max-width: calc(var(--contentWidth) / 2);
+  opacity: 1;
+  order: 1;
+  flex-grow: 1;
+  text-align: Right;
+  padding: 100px;
+
+  color: var(--textColour_Accented);
 }
 
 .gameBannerText
 {
-    color:var(--textColour);
+    min-width: 0;
+    color: inherit;
     font-size: 32px;
     font-weight: bold;
+    flex-wrap:wrap-reverse;
 }
 
 .gameBannerTextMinor
 {
-    color:var(--textColour);
-    font-size: 25px;
+  color: inherit;
+
+  min-width: 0;
+  font-size: 25px;
 }
 
 .blogBox
 {
-  box-shadow:
-  0 2.8px 1.2px rgba(0, 0, 0, 0.015),
-  -0 3.7px 2.3px rgba(0, 0, 0, 0.015),
-  0 5.5px 5px rgba(0, 0, 0, 0.015),
-  0 10.3px 9.9px rgba(0, 0, 0, 0.015),
-  0 20.8px 15.4px rgba(0, 0, 0, 0.015),
-    0 10px 10px rgba(0, 0, 0, 0.015);
-
-  transition: all .2s ease-in-out; 
-
-  background: var(--contentBackground);
-  border-radius: var(--contentBorderRadii);
+  background-color: var(--contentBackgroundAccent);
   padding: 20px;
-  margin-top: 20px;
   box-sizing: border-box;
+
+  width: 100%;
+  
+  margin-right:auto;
+  margin-left:auto;
 }
 
 .blogCardContainer
@@ -90,40 +92,31 @@
   display: grid;
   grid-template-columns: repeat(auto-fill,minmax(33%, 1fr));
   box-sizing: border-box;
+
+  width: var(--contentWidth);
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .blogCard
 {
-  background-color: rgba(255, 255, 255, 0.103);
+  background-color: var(--contentBackground);
   width: auto;
   margin:10px;
-  border-radius: var(--contentBorderRadii);
   box-sizing: border-box;
-  transition: box-shadow .3s ease-in-out;
-}
-
-.blogCard:hover
-{
-  box-shadow:
-  0 5.8px 5.2px rgba(0, 0, 0, 0.025),
-  0 6.7px 2.3px rgba(0, 0, 0, 0.025),
-  0 5.5px 5px rgba(0, 0, 0, 0.025),
-  0 10.3px 9.9px rgba(0, 0, 0, 0.025),
-  0 20.8px 15.4px rgba(0, 0, 0, 0.025),
-    0 10px 10px rgba(0, 0, 0, 0.025);
+  border-radius: var(--cardBorderRadii);
 }
 
 .blogThumbnail
 {
-  border-top-left-radius: var(--contentBorderRadii);
-  border-top-right-radius: var(--contentBorderRadii);
+  border-top-left-radius: var(--cardBorderRadii);
+  border-top-right-radius: var(--cardBorderRadii);
 
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  max-height: auto;
 
   transition: all .2s ease-in-out; 
 
-  filter: none;
   -webkit-filter: grayscale(50%);
   -moz-filter:    grayscale(50%);
   -ms-filter:     grayscale(50%);
@@ -175,13 +168,12 @@
   margin-right:auto;
   margin-left:auto;
   display: block;
-  background-color: rgba(128, 128, 128, 0.47);
-  border-radius: 5px;
+  border-radius: 2px;
+  border-style: none;
+  
+  background-color: var(--contentBackground);
   box-sizing: border-box;
-  font-weight: 700;
   font-size: 20px;
   margin-bottom: 20px;
-  outline: none;
-  border: none;
   padding: 10px;
 }
