@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,200;1,100;1,200&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap" rel="stylesheet">
+
+    <title>Tom Shinton - Adding Components Support To UMG Widgets</title>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script>
+        $(function () {
+            $("#header").load("/header.html");
+            $("#footer").load("/footer.html");
+        });
+    </script>
+    <script src="/assets/scripts/prism.js"></script>
+    <link rel="stylesheet" href="/assets/css/prism.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+</head>
+
+<body>
+    <div id="header"></div>
+    <div class=main id="main">
+        <div class=contentBox>
+            <div class=content><div class=contentTitle>Sections</div>
+<a href="#AddingComponent">1. Adding Components Support To UMG Widgets</a>
+<a href="#NewClass">2. New WidgetSubComponent Class</a>
+<a href="#SupportToUserWidget">3. Adding SubComponent Support to UUserWidgets</a>
+<a href="#Compilation">4. WidgetBlueprint Compilation Support</a>
+<a href="#Styling">5. Icons, Styling and Visuals</a>
+<a href="#Factories">6. Factories and Content Browser Functionality</a>
+<a href="#FinishingTouches">7. Finishing Touches</a>
+            </div>
+        </div>
+
+<div class=contentBox>
+<a class="anchor" id="AddingComponent"></a>
+<div class=content><div class=contentTitle>Adding Components Support To UMG Widgets</div>
+Components in Unreal are exceptionally powerful.
+
+They allow developers to roll functionality into a single piece of code without it polluting anything else.  If we put all code pertaining to an exploding barrel in ExplodingBarrel.h, we'd end up with a colossal monolith of a class.  On top of that, we'd have to duplicate the explosion code whenever we wanted <i>something else</i> to explode.
+
+One thing that UMG is lacking is the ability to have components sit on widgets.  Doesn’t seem too bad on first blush, but if we start adding say "Drag and Drop" functionality to parts of our UI, we're just a stones throw away from that giant monolithic class that would otherwise make our skin crawl if it was anything other that UI.
+
+Here's my proposed solution to this lack of architecture - the <strong>WidgetSubComponent</strong>.  A base class component to mimic the ActorComponent architecture, with all the fancy bells and whistles we'd expect in terms of editor hookups.  We're also gunning for full blueprint support here - UI isnt something code should exclusively drive.
+
+This is a bit of a beastly change, so lets quickly take a look at what we're actually making before we bite the bullet and make it - 
+
+<pre>EXAMPLE
+<code class=language-cpp>
+#pragma once
+
+#include &lt;Runtime/UMG/Public/Blueprint/UserWidget.h&gt;
+    
+#include &quot;TestWidget.generated.h&quot;
+    
+UCLASS()
+class UTestWidget : public UUserWidget
+{
+    GENERATED_BODY()
+    
+    UTestWidget(const FObjectInitializer&amp; InObjectInitialiser)
+        : Super(InObjectInitialiser)
+    {};
+    
+    UPROPERTY(meta=(BindComponent))
+    class UWidgetSubComponent* TestComp;
+};
+</pre></code>
+We'll be adding a new meta specifier called <strong>BindComponent</strong> to mirror the BindAnimation and BindWidget specifiers.  Once NativeConstruct has been called, the Widget will pull the component from the Components array and pop it into the correctly named member variable in native.  To add the component to the widget, all we have to do is - 
+
+<div style="text-align: center"><img style="width: auto" src="/assets/images/blog/pagecontent/WidgetSubComponents/AddingANewComponent.gif" alt="AIControllerSetup"></div>
+Of course we're free to add any other member variables to TestComponent - they'll all show up here.
+
+With this in place, we're free to chunk up code that handles functionality as we would otherwise do in gameplay code.  As far as im concerned, there's absolutely no reason why Drag and Drop functionality should sit besides visual code.  Its messy and we can do better!            </div>
+</div>
+
+<div  class=contentBox>
+<a class="anchor" id="NewClass"></a>
+<div class=content><div class=contentTitle>New WidgetSubComponent Class</div>
+We first need to define a new base class; something that's going to act as our ActorComponent proxy.  Primarily, it'll contain our Binding property for the WidgetCompiler to latch on to, but also a lot of the convivence functions we'd expect in the base engine.
+            
+<pre>NEW FILE - Runtime\UMG\Public\WidgetSubComponent\WidgetSubComponent.h
+<code class=language-cpp>
+#pragma once
+
+#include &lt;Runtime/CoreUObject/Public/UObject/Object.h&gt;
+
+//start @AirEngine Class added to operate as a worker component.  UMG tends to bloat, especially master ones, so adding a new UWidgetSubComponent 
+//class allows for effective and efficient compartmentalization
+
+#include &quot;WidgetSubComponent.generated.h&quot;
+
+class UUserWidget;
+
+UCLASS(MinimalAPI, EditInlineNew, Blueprintable, BlueprintType, meta = (ShortTooltip = &quot;A SubWidgetComponent is a reusable component that can be added to any UUserWidget.&quot;))
+class UWidgetSubComponent : public UObject
+{
+&#x9;GENERATED_BODY()
+
+public:
+
+&#x9;UWidgetSubComponent(const FObjectInitializer&amp; InObjectInitialiser);
+
+&#x9;UFUNCTION(BlueprintNativeEvent, meta=(DisplayName=&quot;Native Construct&quot;))
+&#x9;void ReceiveNativeConstruct();
+&#x9;void ReceiveNativeConstruct_Implementation() {};
+
+&#x9;UFUNCTION(BlueprintNativeEvent, meta=(DisplayName=&quot;Native Destruct&quot;))
+&#x9;void ReceiveNativeDestruct();
+&#x9;void ReceiveNativeDestruct_Implementation() {};
+&#x9;
+&#x9;UFUNCTION(BlueprintNativeEvent, meta=(DisplayName=&quot;Native Tick&quot;))
+&#x9;void ReceiveNativeTick(const float InDeltaTime);
+&#x9;void ReceiveNativeTick_Implementation(const float InDeltaTime) {};
+
+&#x9;virtual void NativeConstruct();
+&#x9;virtual void NativeDestruct();
+&#x9;virtual void NativeTick(const float InDeltaTime);
+
+&#x9;TWeakObjectPtr&lt;UUserWidget&gt; GetWidget() const;
+&#x9;UMG_API const FName* GetBindingName() const;
+
+protected:
+
+&#x9;UPROPERTY(EditAnywhere, Category = &quot;Binding&quot;)
+&#x9;FName BindingName;
+
+&#x9;UPROPERTY(BlueprintReadOnly, Category = &quot;WidgetSubComponent&quot;)
+&#x9;UUserWidget* OwningWidget;
+
+&#x9;UPROPERTY(BlueprintReadOnly, Category = &quot;WidgetSubComponent&quot;)
+&#x9;APlayerController* LocalController;
+};
+</pre></code>
+
+<pre>NEW FILE - Runtime\UMG\Private\WidgetSubComponent\WidgetSubComponent.cpp
+<code class=language-cpp>
+#pragma once
+
+#include &quot;Runtime/UMG/Public/WidgetSubComponent/WidgetSubComponent.h&quot;
+
+#include &quot;Runtime/UMG/Public/Blueprint/UserWidget.h&quot;
+
+UWidgetSubComponent::UWidgetSubComponent(const FObjectInitializer&amp; InObjectInitialiser)
+&#x9;: Super(InObjectInitialiser)
+{}
+
+void UWidgetSubComponent::NativeConstruct()
+{
+&#x9;if(UUserWidget* OuterWidget = CastChecked&lt;UUserWidget&gt;(GetOuter()))
+&#x9;{
+&#x9;&#x9;OwningWidget = OuterWidget;
+&#x9;}
+
+&#x9;if (UWorld* World = GetWorld())
+&#x9;{
+&#x9;&#x9;LocalController = World-&gt;GetFirstPlayerController();
+&#x9;}
+
+&#x9;ReceiveNativeConstruct();
+}
+
+void UWidgetSubComponent::NativeDestruct()
+{
+&#x9;ReceiveNativeDestruct();
+}
+
+void UWidgetSubComponent::NativeTick(const float InDeltaTime)
+{
+&#x9;ReceiveNativeTick(InDeltaTime);
+}
+
+TWeakObjectPtr&lt;UUserWidget&gt; UWidgetSubComponent::GetWidget() const
+{
+&#x9;return OwningWidget;
+}
+
+const FName* UWidgetSubComponent::GetBindingName() const
+{
+&#x9;return &amp;BindingName;
+}
+</pre></code>
+For the most part, this is <i>boilerplate</i>.  An object with spin up, spin down and tick machinery.  Nothing too fancy, nor ground breaking.  All this rubbish is virtual, so we're totally free to inherit and extend as much as we'd like.
+
+Now comes the tricky part - getting the BlueprintWidget to acknowledge they exist in a way that isnt totally insane.
+</div>
+</div>
+
+<div  class=contentBox>
+<a class="anchor" id="SupportToUserWidget"></a>
+<div class=content><div class=contentTitle>Adding SubComponent Support to UUserWidgets - the tricky bit</div>
+Firstly, lets add an array of these bad boys to the UUserWidget base class - this is where we essentially tell each widget what components it owns.  There's actually an array on Actor called OwnedComponents that serves a similar purpose.
+
+<pre>ADDITION - UserWidget.h - Adding OwnedComponents Array
+<code class="language-cpp">
+UPROPERTY(EditAnywhere, Instanced, Category = &quot;Components&quot;, meta = (DisplayName = &quot;Components&quot;, Tooltip = &quot;What components should be added to this widget on native construct&quot;))
+TArray&lt;class UWidgetSubComponent*&gt; OwnedComponents;
+</pre></code>
+Now we've got an array of objects to mess with, lets deal with actually integrating them into the UUserWidget Framework.  For the most part, this routing the spin up, spin down and tick calls, but it also deals with populating any native members the widget might have, much like we'd expect BindAnimation and BindWidget members to be populated.
+
+<pre>CHANGE - UserWidget.cpp - Include relevant header
+<code class="language-cpp">
+//start @AirEngine Add support for WidgetSubComponent
+#include &quot;Runtime/UMG/Public/WidgetSubComponent/WidgetSubComponent.h&quot;
+//end @AirEngine
+</pre></code>
+<pre>CHANGE - UserWidget.cpp - Route NativeDestruct
+<code class="language-cpp">
+void UUserWidget::NativeDestruct()
+{
+    StopListeningForAllInputActions();
+    
+    //start @AirEngine Add support for WidgetSubComponents
+    for(UWidgetSubComponent* Component : OwnedComponents)
+    {
+        Component-&gt;NativeDestruct();&#x9;
+    }
+    //end @AirEngine
+    
+    Destruct();
+}
+</pre></code>
+<pre>CHANGE - UserWidget.cpp - Route NativeTick
+<code class="language-cpp">
+void UUserWidget::NativeTick(const FGeometry&amp; MyGeometry, float InDeltaTime)
+{
+    //Existing tick functionality
+    
+    //start @AirEngine Add support for Widget SubComponents
+    for(UWidgetSubComponent* SubComponent : OwnedComponents)
+    {
+        SubComponent-&gt;NativeTick(InDeltaTime);
+    }
+    //end @AirEngine
+}
+</pre></code>
+This if course comes with the concession that any deeper engine optimisations that would otherwise turn <i>off</i> a widgets tick will also apply to our component.  Further changes would have to be made to keep a component's tick plodding along whilst the outer widget's has been turned off, although an FTimerHandle bunged into the WorldTimerManager could probably give you a halfway decent middleground.
+
+Adding NativeConstruct is a bit more of a handful.  It makes sense to piggy back off of the existing one in UUserWidget, sure, but the OwnedComponents at this point are technically the ones from the WidgetBlueprint's CDO.  Lets take whatever the Widget reckons is right and sort of <i>formalise</i> them by spinning up our own versions.
+
+First we'll need some framework in the header to make our lives a bit easier - 
+
+<pre>ADDITION - UserWidget.h - Route NativeTick and add Component Fixup support
+<code class="language-cpp">
+//Templates cant be in .cpp, so this will have to live in the header
+template&lt;typename TProperty&gt;
+TProperty* GetPropertyByName(const FName&amp; InName)
+{
+&#x9;if (UClass* Class = GetClass())
+&#x9;{
+&#x9;&#x9;if(FProperty* Property = GetClass()-&gt;FindPropertyByName(InName))
+&#x9;&#x9;{
+&#x9;&#x9;&#x9;return CastField&lt;TProperty&gt;(Property);
+&#x9;&#x9;}
+&#x9;}
+
+&#x9;return nullptr;
+};
+
+void FixupSubComponents();
+</pre></code>
+<pre>ADDITION - UserWidget.cpp - Route NativeTick and add Component Fixup support
+<code class="language-cpp">
+//start @AirEngine - add support for WidgetSubComponents
+void UUserWidget::FixupSubComponents()
+{
+    TArray&lt;UWidgetSubComponent*&gt; DuplicatedComponents;
+    
+    for (UWidgetSubComponent* Component : OwnedComponents)
+    {
+        if (UWidgetSubComponent* DuplicatedComp = DuplicateObject&lt;UWidgetSubComponent&gt;(Component, this, Component-&gt;GetFName()))
+        {
+            //If we can bind this, bind it.
+            if (FObjectPropertyBase* TargetProp = GetPropertyByName&lt;FObjectPropertyBase&gt;(*Component-&gt;GetBindingName()))
+            {
+                void* ValuePtr = TargetProp-&gt;ContainerPtrToValuePtr&lt;void&gt;(this);
+                TargetProp-&gt;SetObjectPropertyValue(ValuePtr, DuplicatedComp);
+            }
+
+            DuplicatedComponents.AddUnique(DuplicatedComp);
+        }
+
+        Component-&gt;NativeConstruct();
+    }
+
+    //Replaced our CDO components with newly initialised ones
+    OwnedComponents = DuplicatedComponents;
+}
+//end @AirEngine
+</pre></code>
+<pre>CHANGE - UserWidget.cpp - Route NativeTick and add Component Fixup support
+<code class=language-cpp>
+void UUserWidget::NativeConstruct()
+{
+&#x9;//start @AirEngine Add support for WidgetSubComponents
+&#x9;FixupSubComponents();
+&#x9;//end @AirEngine
+
+&#x9;Construct();
+&#x9;UpdateCanTick();
+}
+</pre></code>
+This above block will parse the current class, find any members that match binding names, and populate that member with the appropriate element in the OwnedComponents array.
+
+<strong>IMPORTANT!</strong>
+    
+We're gunning for full blueprint support here.  As such, we should account for widgets based entirely on UUserWidget with no BindComponent functionality.  Basically, components can exist on a widget with no binding in native - chilling in the OwnedComponents array should be enough.
+</div>
+</div>
+
+<div  class=contentBox>
+<a class="anchor" id="Compilation"></a>
+<div class=content><div class=contentTitle>WidgetBlueprint Compilation Support - Maybe an even trickier bit</div>
+Now we've got a components being added to the Widget, we need to add parity in regards to how the UMG Editor deals with missing bindings.
+
+If we fail to bind to a Widget through BindWidget, or indeed an Animation through BindWidgetAnim, the compiler will kick up a fuss - error messages, failure to load current widget state at runtime, it’s a real mess.  This addition looks messier than it actually is, I promise - the bulk of the work takes place in the <strong>WidgetBlueprintCompiler</strong>.
+
+Firstly, we need to actually add the definition for the "BindComponent" metadata.
+</pre></code>
+<pre>ADDITION - Widget.h, underneath the entry for EntryInterface, roughly line 83.
+<code class=language-cpp>
+//start @AirEngine Add WidgetSubComponent support
+// [PropertyMetadata] This property requires a WidgetSubComponent to be bound to it in in the designer.  Allows for easy native access to designer defined component functionality
+// UPROPERTY(meta=(BindComponent))
+BindComponent,
+</pre></code>
+This addition essentially flags to the compiler that BindComponent is indeed a legal meta specifier within UWidget, and we also get the opportunity to provide some flavour text, giving the developer a bit of a hint as to what this specifier does.
+
+Next, lets deal with predicting if we even need to make any bindings for this current class - 
+</pre></code>
+<pre>ADDITION - WidgetBlueprintCompiler.h - Add array to hold properties we anticipate binding to
+<code class=language-cpp>
+//start @AirEngine Add support for WidgetSubComponent
+TArray&lt;class FObjectPropertyBase*&gt; WidgetComponentArray;
+//end @AirEngine
+</pre></code>
+<pre>CHANGE - WidgetBlueprintCompiler.cpp - Add block at the bottom of FWidgetBlueprintCompilerContext::CreateClassVariablesFromBlueprint
+<code class=language-cpp>
+//start @AirEngine Add support for WidgetSubComponent
+for (TFObjectPropertyBase&lt;UWidgetSubComponent*&gt;* SubComponentProperty : TFieldRange&lt;TFObjectPropertyBase&lt;UWidgetSubComponent*&gt;&gt;(ParentClass))
+{
+    if (FWidgetBlueprintEditorUtils::IsBindComponentProperty(*SubComponentProperty))
+    {
+        WidgetComponentArray.Add(SubComponentProperty);
+    }
+}
+//end @AirEngine
+</pre></code>
+We'll also need to implement that static IsBindComponentProperty function.
+</pre></code>
+<pre>ADDITION - WidgetBlueprintEditorUtils.h
+<code class=language-cpp>
+//start @AirEngine Add support for WidgetSubComponents
+static bool IsBindComponentProperty(FProperty&amp; InProperty);
+//end @AirEngine
+</pre></code>
+<pre>ADDITION - WidgetBlueprintEditorUtils.cpp
+<code class=language-cpp>
+//start @AirEngine Add support for WidgetSubComponents
+bool FWidgetBlueprintEditorUtils::IsBindComponentProperty(FProperty&amp; InProperty)
+{
+    return InProperty.HasMetaData(&quot;BindComponent&quot;);
+}
+//end @AirEngine
+</pre></code>
+Nothing too fancy here - we can quite literally poll to see if the FProperty has the metadata BindComponent on it.  If it is, we'll consider it liable for a binding.
+
+CreateClassVariablesFromBlueprint is actually called as soon as we hit Compile in the Widget Blueprint.  As such, we should have an array of FObjectPropertyBase* representing properties that need binding in the next phase of compilation very early on.  If the array is empty, we can assume the widget doesnt actually require any components to be bound.
+
+However, if we <i>do</i> have properties that need a hookup, we can proceed to validate the bindings.
+
+Inside the FinishCompilingClass function, we need to add the following block - 
+
+<pre>CHANGE - Inside FWidgetBlueprintCompilerContext::FinishCompilingClass
+<code class=language-cpp>
+if (bIsSkeletonOnly)
+{
+    //First pass - verify all components have been created at edit time
+    if (WidgetComponentArray.Num() &gt; 0)
+    {
+        if (UWidgetBlueprintGeneratedClass* BPGC = Cast&lt;UWidgetBlueprintGeneratedClass&gt;(WidgetBP-&gt;GeneratedClass))
+        {
+            if (UUserWidget* DefaultWidget = BPGC-&gt;GetDefaultObject&lt;UUserWidget&gt;())
+            {
+                const TArray&lt;UWidgetSubComponent*&gt; Components = DefaultWidget-&gt;OwnedComponents;
+
+                for (uint8 i = 0; i &lt; Components.Num(); ++i)
+                {
+                    if (Components[i] != nullptr)
+                    {
+                        const FString SubcomponentName = Components[i]-&gt;GetClass()-&gt;GetName();
+                        if (SubcomponentName.Contains(TEXT(&quot;REINST_&quot;)))
+                        {
+                            DefaultWidget-&gt;OwnedComponents[i] = &amp;ReinstanceComponent(Components[i]);
+                        }
+                    }
+                }
+
+                for (const FObjectPropertyBase* WidgetComponent : WidgetComponentArray)
+                {
+                    const FName ExpectedName = WidgetComponent-&gt;GetFName();
+                    const FText RequiredComponentNotBoundError = LOCTEXT(&quot;RequiredComponentNotBound&quot;, &quot;A required component binding \&quot;{0}\&quot; (\&quot;{1}\&quot;) was not found.&quot;);
+                    const FText RequiredComponentBoundLog = LOCTEXT(&quot;RequiredComponentBound&quot;, &quot;\&quot;{0}\&quot; was successfully bound&quot;);
+
+                    const int8 IndexOfMatchingProperty = Components.IndexOfByPredicate([&amp;ExpectedName](UWidgetSubComponent* SubComp) -&gt;bool
+                    {
+                        if (SubComp != nullptr)
+                        {
+                            return *SubComp-&gt;GetBindingName() == ExpectedName;
+                        }
+
+                        return false;
+                    });
+
+                    if (IndexOfMatchingProperty == INDEX_NONE)
+                    {
+                        const FText ErrorLog = FText::Format
+                        (RequiredComponentNotBoundError,
+                            FText::FromName(ExpectedName),
+                            FText::FromName(WidgetComponent-&gt;PropertyClass-&gt;GetFName()));
+                        MessageLog.Error(*ErrorLog.ToString());
+                    }
+                    else
+                    {
+                        MessageLog.Note(*FText::Format(RequiredComponentBoundLog, FText::FromName(ExpectedName)).ToString());
+                    }
+                }
+            }
+        }
+    }
+}
+</pre></code>
+What we're doing here is essentially predicting any bindings that'll be made as soon as we call NativeConstruct.  If we Fail to bind, belt a whole load of errors into the output log, prompting the designer to fulfull the contract the whole BindX architecture imposes.
+
+If we fail to bind here, we'll be greeted with this lovely message - 
+
+<div style="text-align: center"><img style="width: 90%" src="/assets/images/blog/pagecontent/WidgetSubComponents/CompileFailure.png" alt="AIControllerSetup"></div>
+In ths case, we've got a UserWidget expecting a WidgetSubComponent member to be populated from the Design layer, of name "TestComp".  Fail both criteria, get hit with a compile hammer.
+
+<strong>IMPORTANT!</strong>
+
+Because we're building out a full feature here, we need to be cogniscant of REINST_ objects sneaking their way in.  The TLDR here is - if we have a Blueprint authored component present as a bound component, it'll be made stale as soon as the source blueprint gets recompiled.  The stale version will get prefixed with REINST_ and get nulled out on save.  That's a real nightmare in terms of scalabilty, and we'll need to fix it.  You'll of noticed we've made a call to a "ReinstanceComponent" function in the above mess of code; lets implement that so we can sleep at night.
+
+<pre>ADDITION - FWidgetBlueprintCompilerContext::ReinstanceComponent
+<code class=language-cpp>
+//start @AirEngine Add support for WidgetSubComponent
+UWidgetSubComponent&amp; ReinstanceComponent(UWidgetSubComponent* InStaleComponent);
+TArray&lt;class FObjectPropertyBase*&gt; WidgetComponentArray;
+//end @AirEngine
+</pre></code>
+<pre>ADDITION - FWidgetBlueprintCompilerContext::ReinstanceComponent
+<code class=language-cpp>
+UWidgetSubComponent&amp; FWidgetBlueprintCompilerContext::ReinstanceComponent(UWidgetSubComponent* InStaleComponent)
+{
+    MessageLog.Note(*FString::Printf(TEXT(&quot;%s is stale - reinstancing&quot;), *InStaleComponent-&gt;GetName()));
+    
+    UWidgetSubComponent* ReinstancedComponent = NewObject&lt;UWidgetSubComponent&gt;(InStaleComponent-&gt;GetOuter(), InStaleComponent-&gt;GetClass()-&gt;GetAuthoritativeClass());
+    UEngine::CopyPropertiesForUnrelatedObjects(InStaleComponent, ReinstancedComponent);
+  
+    return *ReinstancedComponent;
+}
+//end @AirEngine
+</pre></code>
+Quite simply, we detect that one of our components has been made stale, so we create a new, non-stale version, and copy over what we can from the previously stale version.  This new component is not stale, and not out of date, so we dont have to worry about having it nulled out.
+
+Our final final <i>final</i> bit of logic work is to do a single line of cleanup.
+
+<pre>CHANGE - Empty our runtime array in FWidgetBlueprintCompilerContext::OnPostCDOCompiled, under WidgetAnimToMemberVariableMap.Empty()
+<code class=language-cpp>
+WidgetComponentArray.Empty();
+</pre></code>
+</div>
+</div>
+
+<div class=contentBox>
+<a class="anchor" id="Styling"></a>
+<div class=content><div class=contentTitle>Icons, Styling and Visuals</div>
+We're on the home stretch!  We've got the actual logic in place, so now we need to add a bunch of Editor facing changes to basically cement WidgetSubComponents as an actually viable Editor feature.
+
+<div style="text-align: center"><img style="width: 128px; height: 128px" src="/assets/images/blog/pagecontent/WidgetSubComponents/WidgetSubComponentIcon.png" alt="AIControllerSetup"></div>
+I've mocked up an icon for the WidgetSubComponent - please feel free to yoink!  Upscaling hasnt been kind here, but Unreal really only works with icons 16px and 64px square, at least in Slate, so dont sweat it, it'll look primo in-engine.
+
+Lets start hooking it up.
+
+Firstly, lets list our new WidgetSubComponent class as a "Default Class".  The <strong>Engine/Content/Editor/Slate/Icons/AssetIcons/</strong> directory contains all manner of Icons used to build out the Engine's slate style - for this change, we'll need to add a couple new icons in here, that being the <strong>WidgetSubComponent_16x.png</strong> and <strong>WidgetSubComponent_64x.png</strong>. 
+
+Once we've got our icon added to the directory, we'll need to flag to the engine that we do indeed have an icon to source - we do that by ammending the <strong>SlateEditorStyle.cpp</strong> file as such - 
+
+<pre>ADDITION - Engine\Source\Editor\EditorStyle\Private\SlateEditorStyle.cpp, under TEXT("FoliageType_Actor") in FSlateEditorStyle::FStyle::SetupClassIconsAndThumbnails()
+<code class=language-cpp>
+TEXT("WidgetSubComponent")
+</pre></code>
+</div>
+Pretty simple - we just flag to the engine "hey, if you come across called WidgetSubComponent, i've got an icon for it in the AssetIcons directory".  Whenever a child of SubWidgetComponent needs an icon in editor, it's now going to use our new icon.
+
+</div>
+
+<div  class=contentBox>
+<a class="anchor" id="Factories"></a>
+<div class=content><div class=contentTitle>Factories and Content Browser Functionality</div>
+The last thing we need to do is make sure we have all of the Content browser functionalty that's we'd expect of a native class in Unreal - you know what that means.  It means object factories.
+
+Lets get the big chunky guys out the way first.  I wont go too in depth, but <a href="http://cairansteverink.nl/cairansteverink/blog/creating-a-custom-editor-asset-in-unreal-engine-4/">Cairan Steverink</a> has an excellent series of posts that talk through the rough outlines.
+
+Firstly, lets start with our <strong>Editor Module</strong> additions.
+
+<pre>NEW FILE - Engine\Source\Editor\UMGEditor\Public\WidgetSubComponent\WidgetSubComponentAssetFactory.h
+<code class=language-cpp>
+#pragma once
+//start @AirEngine - Add support for WidgetSubComponents
+
+#include <Editor/UnrealEd/Classes/Factories/Factory.h>
+
+#include "WidgetSubComponentAssetFactory.generated.h"
+
+UCLASS()
+class UMGEDITOR_API UWidgetSubComponentAssetFactory : public UFactory 
+{
+    GENERATED_BODY()
+
+public:
+
+    UWidgetSubComponentAssetFactory(const FObjectInitializer& InObjectInitialiser);
+
+    //UFactory
+    virtual UObject* FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn) override;
+    virtual bool ShouldShowInNewMenu() const override;
+    virtual uint32 GetMenuCategories() const override;
+    virtual FText GetDisplayName() const override;
+    //~UFactory
+};
+</pre></code>
+<pre>NEW FILE - Engine\Source\Editor\UMGEditor\Private\WidgetSubComponent\WidgetSubComponentAssetActions.cpp
+<code class=language-cpp>
+#include &quot;Editor/UMGEditor/Public/WidgetSubComponent/WidgetSubComponentAssetFactory.h&quot;
+#include &lt;Developer/AssetTools/Public/AssetTypeCategories.h&gt;
+#include &lt;Runtime/UMG/Public/WidgetSubComponent/WidgetSubComponent.h&gt;
+#include &quot;Kismet2/KismetEditorUtilities.h&quot;
+
+UWidgetSubComponentAssetFactory::UWidgetSubComponentAssetFactory(const FObjectInitializer&amp; InObjectInitialiser)
+    : Super(InObjectInitialiser)
+{
+    SupportedClass = UWidgetSubComponent::StaticClass();
+    bCreateNew = true;
+    bEditAfterNew = true;
+}
+
+UObject* UWidgetSubComponentAssetFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+{
+    return FKismetEditorUtilities::CreateBlueprint(InClass, InParent, InName, EBlueprintType::BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
+}
+
+bool UWidgetSubComponentAssetFactory::ShouldShowInNewMenu() const
+{
+    return true;
+}
+
+uint32 UWidgetSubComponentAssetFactory::GetMenuCategories() const
+{
+    return EAssetTypeCategories::UI;
+}
+
+FText UWidgetSubComponentAssetFactory::GetDisplayName() const
+{
+    return NSLOCTEXT(&quot;WidgetSubComponentFactory&quot;, &quot;Widget SubComponent&quot;, &quot;Widget SubComponent&quot;);
+}
+</pre></code>
+From here, we can define some actions about the class - 
+
+<pre>NEW FILE - Engine\Source\Editor\UMGEditor\Public\WidgetSubComponent\WidgetSubComponentAssetActions.h
+<code class=language-cpp>
+#pragma once
+//start @AirEngine Add support for WidgetSubComponents
+
+#include &quot;CoreMinimal.h&quot;
+#include &quot;Toolkits/IToolkitHost.h&quot;
+#include &quot;AssetTypeActions_Base.h&quot;
+
+struct FAssetData;
+
+//TODO Use base class FAssetTypeActions_Blueprint later
+class FWidgetSubComponentAssetActions : public FAssetTypeActions_Base
+{
+public:
+
+    FWidgetSubComponentAssetActions();
+
+    //IAssetTypeActions Implementation
+    virtual FText GetName() const override;
+    virtual FColor GetTypeColor() const override;
+    virtual uint32 GetCategories() override;
+    virtual bool CanLocalize() const override;
+    virtual UClass* GetSupportedClass() const override;
+    //~IAssetTypeActions Implementation
+};
+</pre></code>
+<pre>NEW FILE - Engine\Source\Editor\UMGEditor\Private\WidgetSubComponent\WidgetSubComponentAssetActions.cpp
+<code class=language-cpp>
+#include &quot;Editor/UMGEditor/Public/WidgetSubComponent/WidgetSubComponentAssetActions.h&quot;
+#include &lt;Runtime/UMG/Public/WidgetSubComponent/WidgetSubComponent.h&gt;
+
+FWidgetSubComponentAssetActions::FWidgetSubComponentAssetActions()
+{
+
+}
+
+FText FWidgetSubComponentAssetActions::GetName() const
+{
+    return NSLOCTEXT(&quot;AssetTypeActions&quot;, &quot;WidgetSubComponentAssetActions&quot;, &quot;WidgetSubComponent&quot;);
+}
+
+FColor FWidgetSubComponentAssetActions::GetTypeColor() const
+{
+    return FColor(44.f, 89.f, 180.f);
+}
+
+uint32 FWidgetSubComponentAssetActions::GetCategories()
+{
+    return EAssetTypeCategories::UI;
+}
+
+bool FWidgetSubComponentAssetActions::CanLocalize() const
+{
+    return false;
+}
+
+UClass* FWidgetSubComponentAssetActions::GetSupportedClass() const
+{
+    return UWidgetSubComponent::StaticClass();
+}
+</pre></code>
+Finally, we need to actually register this set of actions.  We already register actions for the BlueprintWidget class inside the StartupModule function in UMGEditorModule.cpp, so lets just take the action registration for the WidgetComponent in there too - 
+
+<pre>ADDITION - below RegisterAssetTypeAction(AssetTools, MakeShareable(new FAssetTypeActions_WidgetBlueprint())); in UMGEditorModule.cpp
+<code class=language-cpp>
+RegisterAssetTypeAction(AssetTools, MakeShareable(new FWidgetSubComponentAssetActions()));
+</pre></code>
+With both the factories and actions in place, as well as the Styling, we should be able to create our new asset type directly in the content browser no problemo - 
+
+<div style="text-align: center"><img style="width: 15vw" src="/assets/images/blog/pagecontent/WidgetSubComponents/CreateFromContextMenu.png" alt="CreateThroughContextMenu"></div>
+
+</div>
+</div>
+
+<div class=contentBox>
+<a class="anchor" id="FinishingTouches"></a>
+<div class=content><div class=contentTitle>Finishing Touches</div>
+There's a few final touches i'd like to integrate to make this feature feel a bit more "native".  First things first, lets get this component added to the "Common Blueprint" dialog screen.  We have ActorComponent in there, and for some reason we have SceneComponent; lets spread the love and learn a little about the engine at the same time eh.
+
+Firstly, we'll want to make sure the Class is considered a <i>Default Class</i>.  This is easy enough with the following change - 
+
+<pre>ADDITION - Added to the Class Picker Dialog block inside BaseEditor.ini
+<code class=language-cpp>
++NewAssetDefaultClasses=(ClassName="/Script/UMG.WidgetSubComponent", AssetClass="/Script/Engine.Blueprint")
+</pre></code>
+We also want to give this box a little bit of a size increase; Widget SubComponent is a bit longer than this box anticipated, so lets change the slate to make the box a squidge bigger - 
+
+<pre>CHANGE - Line 88 Engine/Source/Editor/UnrealEd/Private/SClassPickerDialog.cpp
+<code class=language-cpp>
+.WidthOverride(600.0f)
+</pre></code>
+Literally an extra 20 pixels added to the width of the default class box. Minor I know, but a good exercise in tracking down how Slate is built.
+
+<div style="text-align: center"><img style="width: 30vw" src="/assets/images/blog/pagecontent/WidgetSubComponents/ClassPicker.png" alt="CreateThroughContextMenu"></div>
+
+Finally, lets expose out those Blueprint functions inside SubWidgetComponent to let developers know what tools they've got to play with by default.
+
+<pre>ADDITION - Engine\Config\BaseEditorPerProjectUserSettings.ini, inside [DefaultEventNodes] block
+<code class=language-cpp>
++Node=(TargetClass=WidgetSubComponent TargetEvent=&quot;ReceiveNativeConstruct&quot;)
++Node=(TargetClass=WidgetSubComponent TargetEvent=&quot;ReceiveNativeDestruct&quot;)
++Node=(TargetClass=WidgetSubComponent TargetEvent=&quot;ReceiveNativeTick&quot;)
+</pre></code>
+<div style="text-align: center"><img style="width: 50vw" src="/assets/images/blog/pagecontent/WidgetSubComponents/DefaultNodes.png" alt="CreateThroughContextMenu"></div>
+
+This is a bit of a monster I know, but I really think it opens up a miles more approachable UMG pipeline to engineers in it for the long run.
+
+As always, any questions please feel free to reach out on Twitter.
+</div>
+</div>
+
+</div>
+<div id="footer"></div>
+</body>
+</html>

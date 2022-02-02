@@ -127,3 +127,11 @@
 
   background-color: var(--mainBackground);
 }
+
+a.anchor {
+  display: block;
+  position: relative;
+  top: calc(var(--navbarHeight) * -1.5);
+  visibility: hidden;
+  scroll-behavior: smooth;
+}

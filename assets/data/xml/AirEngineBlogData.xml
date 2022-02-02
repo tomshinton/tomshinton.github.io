@@ -51,4 +51,15 @@
     <category>Blackboard</category>
     <category>Behaviour Tree</category>
   </post>
+
+  <post>
+    <title>Adding Components Support To UMG Widgets</title>
+    <postURL>/assets/content/blog/WidgetSubComponents.html</postURL>
+    <postThumbnail></postThumbnail>
+    <category>UI</category>
+    <category>Editor</category>
+    <category>UMG</category>
+    <category>Feature</category>
+  </post>
+
 </root>
