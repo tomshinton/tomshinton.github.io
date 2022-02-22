@@ -24,6 +24,10 @@
   box-sizing: border-box;
 }
 
+img
+{
+  max-width: 100%;
+}
 html {
   overflow-y: scroll;
 }
@@ -95,7 +99,8 @@ p, div
   clip-path: ellipse(50% 50% at center);
   width: 250px;
   height: 250px;
-  
+  max-width: auto;
+  max-height: auto;
   margin: 20px;
 }
 

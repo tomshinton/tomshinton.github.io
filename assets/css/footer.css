@@ -34,6 +34,7 @@
     padding-right: 10px;
     padding-left: 10px;
 
+    cursor: pointer;
     transition: transform .3s ease-in, opacity .3s ease-in;
 }
 
